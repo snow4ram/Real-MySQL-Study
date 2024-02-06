@@ -24,9 +24,14 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.h2gis:h2gis:1.6.0'
+	//json
+	implementation group: 'io.hypersistence', name: 'hypersistence-utils-hibernate-63', version: '3.7.0'
+
 	compileOnly 'org.projectlombok:lombok'
+
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	implementation 'com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations'
 
 	//querydsl
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -38,6 +43,7 @@ dependencies {
 
 	annotationProcessor 'org.projectlombok:lombok'
 
+	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
