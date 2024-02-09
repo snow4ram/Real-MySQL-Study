@@ -1,37 +1,45 @@
 package mysqlpoint.realmysqlpoint.map;
 
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Point;
 
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Restaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 50)
+    @Comment("레스토랑 분류")
+    private String category;
+
+    @Column(length = 200)
+    @Comment("레스토랑 이름")
     private String name;
 
-    @Column(columnDefinition = "POINT")
-    private Point coordinates;
+    @Column(length = 200)
+    @Comment("레스토랑 주소")
+    private String address;
 
-    public Restaurant(Point coordinates , String name) {
-        this.coordinates = coordinates;
-        this.name = name;
-    }
+    @Comment("위도, 경도")
+    private Point location;
 
-    @Override
-    public String toString() {
-        return "Restaurant{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", coordinates=" + coordinates +
-                '}';
-    }
+    @Comment("가게 연락처")
+    private Long contact;
+
 }
