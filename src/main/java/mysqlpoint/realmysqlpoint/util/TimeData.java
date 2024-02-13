@@ -21,5 +21,5 @@ public class TimeData {
 
     private LocalTime breakStartTime; // 브레이크 타임 시작 시간
 
-    private LocalTime breakEndTime; // 브레이크 타임 종료 시간
+    private LocalTime breakEndTime; // 브레이크 타임 종료 시간a
 }
