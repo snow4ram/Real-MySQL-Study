@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naver Map Example</title>
+    <script type="text/javascript"
+            src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=9sjugkpizo"></script>
+    <style>
+        html, body, #map {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #search-in-current-map {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<script type="text/javascript">
+    var map;
+    var currentZoomLevel = 16; // 초기 줌 레벨 설정
+    var markersArray = []; // 마커를 저장할 배열
+    var lastCenter = null; // 사용자의 마지막 위치 저장
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        function toRad(x) {
+            return x * Math.PI / 180;
+        }
+
+        var R = 6371; // 지구의 평균 반지름 km
+        var dLat = toRad(lat2-lat1);
+
+        console.log(dLat)
+
+        var dLon = toRad(lon2-lon1);
+
+        console.log(dLon)
+
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+
+        console.log(a)
+
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        console.log(c)
+
+        var d = R * c;
+
+        console.log(d)
+
+        var result = d * 1000; // m로 변환
+
+        console.log(result)
+
+        return result;
+    }
+
+    function initMap() {
+        map = new naver.maps.Map('map', {
+            center: new naver.maps.LatLng(35.84082040579553, 128.70514786316414),
+            zoom: currentZoomLevel
+        });
+        lastCenter = map.getCenter(); // 지도 로드 시 초기 중심 위치 저장
+
+        naver.maps.Event.addListener(map, 'zoom_changed', function(zoom) {
+            currentZoomLevel = zoom;
+            sendZoomValue(currentZoomLevel);
+        });
+
+        naver.maps.Event.addListener(map, 'dragend', function() {
+            var newCenter = map.getCenter();
+            let number = calculateDistance(lastCenter.lat(), lastCenter.lng(), newCenter.lat(), newCenter.lng());
+
+            console.log("최종값 : ", number)
+
+            if (number > 100) {
+                loadInitialRestaurants();
+                lastCenter = newCenter;
+            }
+        });
+
+        loadInitialRestaurants();
+    }
+
+    function loadInitialRestaurants() {
+        var center = map.getCenter();
+        sendLocationToServer(center.lat(), center.lng(), '음식점');
+    }
+
+    function sendLocationToServer(lat, lng, message) {
+        var data = {
+            message: message,
+            latitude: lat,
+            longitude: lng
+        };
+
+        fetch('/v1/api/restaurant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => response.json())
+            .then(data => {
+                markersArray.forEach(marker => marker.setMap(null)); // 기존 마커 제거
+                markersArray = []; // 마커 배열 초기화
+                data.forEach(restaurant => {
+                    var marker = new naver.maps.Marker({
+                        position: new naver.maps.LatLng(restaurant.latitude, restaurant.longitude),
+                        map: map,
+                        title: restaurant.name
+                    });
+
+                    markersArray.push(marker);
+
+                    naver.maps.Event.addListener(marker, 'click', function() {
+                        sendRestaurantName(restaurant.name, restaurant.latitude, restaurant.longitude);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('서버로의 요청을 보내는 데 실패했습니다.');
+            });
+    }
+
+    function sendZoomValue(zoom) {
+        console.log("Sending zoom level to the server:", zoom);
+        var zoomLevel = {
+            lookLevel: zoom
+        }
+
+        console.log(zoomLevel)
+        // Zoom level 전송 로직 (생략)
+    }
+
+    function sendRestaurantName(restaurantName, restaurantLatitude, restaurantLongitude) {
+        var data = {
+            message: restaurantName,
+            latitude: restaurantLatitude,
+            longitude: restaurantLongitude
+        };
+        console.log("Sending restaurant name to the server:", restaurantName);
+        fetch('/v1/api/sendRestaurantName', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    initMap();
+</script>
+</body>
+</html>

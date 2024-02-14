@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Naver Map Example</title>
+  <script type="text/javascript"
+          src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=9sjugkpizo"></script>
+  <style>
+    html, body, #map {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #search-in-current-map {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 100;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<button id="search-in-current-map">우리술 판매점 찾기</button>
+<script type="text/javascript">
+  var map;
+  var centerMarker; // 지도 중심 마커
+  var markersArray = []; // 마커를 저장할 배열
+
+  function initMap() {
+    map = new naver.maps.Map('map', {
+      center: new naver.maps.LatLng(35.84082040579553, 128.70514786316414),
+      zoom: 16
+    });
+
+    centerMarker = new naver.maps.Marker({
+      position: map.getCenter(),
+      map: map
+    });
+
+    naver.maps.Event.addListener(map, 'idle', function () {
+      centerMarker.setPosition(map.getCenter());
+    });
+
+    document.getElementById("search-in-current-map").addEventListener("click", function (e) {
+      e.preventDefault();
+      clearMarkers(); // 기존 마커 초기화
+      var position = centerMarker.getPosition();
+      sendLocationToServer(position.lat(), position.lng(), '음식점');
+    });
+  }
+
+  function clearMarkers() {
+    for (var i = 0; i < markersArray.length; i++) {
+      markersArray[i].setMap(null);
+    }
+    markersArray = []; // 배열 초기화
+  }
+
+  function sendLocationToServer(lat, lng, message) {
+    var data = {
+      message: message,
+      latitude: lat,
+      longitude: lng
+    };
+
+    fetch('/v1/api/restaurant', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+            .then(response => response.json())
+            .then(data => {
+              data.forEach(restaurant => {
+                var marker = new naver.maps.Marker({
+                  position: new naver.maps.LatLng(restaurant.latitude, restaurant.longitude),
+                  map: map,
+                  title: restaurant.name
+                });
+
+                markersArray.push(marker); // 마커 배열에 추가
+
+                naver.maps.Event.addListener(marker, 'click', function(e) {
+                  sendRestaurantName(restaurant.name , restaurant.latitude , restaurant.longitude); // 마커 클릭 시 서버로 가게 이름 전송
+                });
+              });
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+              alert('서버로의 요청을 보내는 데 실패했습니다.');
+            });
+  }
+
+  function sendRestaurantName(restaurantName , restaurantLatitude , restaurantLongitude) {
+
+    var data = {
+      message: restaurantName,
+      latitude: restaurantLatitude,
+      longitude: restaurantLongitude
+    };
+    // 여기에 서버로 가게 이름을 전송하는 코드를 추
+    console.log("Sending restaurant name to the server:", restaurantName);
+    // 예시 코드입니다. 실제 URL과 처리 로직은 서버 설정에 따라 달라집니다.
+    fetch('/v1/api/sendRestaurantName', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+            .then(response => {
+              if (response.ok) {
+                console.log("Restaurant name sent successfully");
+              } else {
+                console.error("Failed to send restaurant name");
+              }
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+  }
+
+  initMap();
+</script>
+</body>
+</html>
