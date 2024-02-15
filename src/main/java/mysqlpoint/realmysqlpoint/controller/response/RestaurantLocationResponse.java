@@ -30,15 +30,17 @@ public class RestaurantLocationResponse {
 
     private Long contact;
 
-    private Map<String, Object> menu = new HashMap<>();
+    private Map<String, Object> menu;
 
-    private Map<String, Object> time = new HashMap<>();
+    private Map<String, Object> time;
 
-    private Map<String , Object> provision = new HashMap<>();
+    private Map<String , Object> provision;
 
-    //point x : 경도  , y : 위도
-    //Double latitude : 위도
-    //Double longitude : 경도
+    /**
+        point x : 경도  , y : 위도
+        Double latitude : 위도
+        Double longitude : 경도
+     **/
     public static RestaurantLocationResponse of (Restaurant restaurant) {
         return RestaurantLocationResponse.builder()
                 .id(restaurant.getId())

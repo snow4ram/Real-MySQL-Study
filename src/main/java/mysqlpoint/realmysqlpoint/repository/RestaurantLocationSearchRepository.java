@@ -1,11 +1,11 @@
-package mysqlpoint.realmysqlpoint.service;
+package mysqlpoint.realmysqlpoint.repository;
 
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.request.RestaurantLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
 import org.locationtech.jts.geom.Coordinate;
@@ -26,7 +26,7 @@ public class RestaurantLocationSearchRepository {
     private final JPQLQueryFactory query;
 
     @Transactional(readOnly = true)
-    public RestaurantLocationResponse search(UserLocationRequest locationRequest) {
+    public RestaurantLocationResponse search(RestaurantLocationRequest locationRequest) {
 
         final GeometryFactory geometryFactory = new GeometryFactory();
 
