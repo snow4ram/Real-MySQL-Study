@@ -3,8 +3,8 @@ package mysqlpoint.realmysqlpoint.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mysqlpoint.realmysqlpoint.controller.request.UserLocationAndZoomRequest;
-import mysqlpoint.realmysqlpoint.controller.request.RestaurantLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.request.UserLocationToZoomRequest;
+
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantNameResponse;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
@@ -24,15 +24,20 @@ public class RestaurantService {
 
     private final JpaRestaurantRepository restaurantRepository;
 
-    private final RestaurantMapper restaurantMapper;
+    private final RestaurantMapper restaurantNameResponseMapper;
 
     private static final Integer DEFAULT_RADIUS = 1000;
+    //반경 미정.
     private static final Integer ZOOM_LEVEL_17_RADIUS = 750;
-
     private static final Integer ZOOM_LEVEL_18_RADIUS = 500;
     private static final Integer ZOOM_LEVEL_19_RADIUS = 250;
+
+    private static final Long ZOOM_LEVEL_16 = 16L;
+
     private static final Long ZOOM_LEVEL_17 = 17L;
+
     private static final Long ZOOM_LEVEL_18 = 18L;
+    private static final Long ZOOM_LEVEL_19 = 19L;
 
 
     /*
@@ -50,37 +55,42 @@ public class RestaurantService {
 
         List<Restaurant> restaurants = restaurantRepository.findAllWithinPoint(locationRequest.getLatitude() , locationRequest.getLongitude() , DEFAULT_RADIUS);
 
-        return restaurants.stream().map(restaurantMapper).collect(Collectors.toList());
+        return restaurants.stream()
+                .map(restaurantNameResponseMapper)
+                .collect(Collectors.toList());
 
     }
-
-
-    public List<RestaurantNameResponse> getZoomLevelRestaurant(UserLocationAndZoomRequest locationAndZoomRequest) {
+    
+    public List<RestaurantNameResponse> getZoomLevelRestaurant(UserLocationToZoomRequest locationAndZoomRequest) {
 
         final Long zoomLevel = locationAndZoomRequest.getZoomLevel();
 
-        if (Objects.equals(zoomLevel, ZOOM_LEVEL_17)) {
-
-            List<Restaurant> everythingWithinA17PointRadius = restaurantRepository.findAllWithinPoint(locationAndZoomRequest.getLatitude(), locationAndZoomRequest.getLongitude(), ZOOM_LEVEL_17_RADIUS);
-
-            return everythingWithinA17PointRadius.stream().map(restaurantMapper).collect(Collectors.toList());
+        if (Objects.equals(zoomLevel, ZOOM_LEVEL_16)) {
+            return getRestaurantNameResponses(locationAndZoomRequest , DEFAULT_RADIUS);
         }
 
+        if (Objects.equals(zoomLevel, ZOOM_LEVEL_17)) {
+            return getRestaurantNameResponses(locationAndZoomRequest , ZOOM_LEVEL_17_RADIUS);
+        }
 
         if (Objects.equals(zoomLevel, ZOOM_LEVEL_18)) {
-
-            List<Restaurant> everythingWithinA17PointRadius = restaurantRepository.findAllWithinPoint(locationAndZoomRequest.getLatitude(), locationAndZoomRequest.getLongitude(), ZOOM_LEVEL_18_RADIUS);
-
-            return everythingWithinA17PointRadius.stream().map(restaurantMapper).collect(Collectors.toList());
+            return getRestaurantNameResponses(locationAndZoomRequest , ZOOM_LEVEL_18_RADIUS);
         }
 
+        if (Objects.equals(zoomLevel, ZOOM_LEVEL_19)) {
+            return getRestaurantNameResponses(locationAndZoomRequest , ZOOM_LEVEL_19_RADIUS);
+        }
 
-        List<Restaurant> everythingWithinA17PointRadius = restaurantRepository.findAllWithinPoint(locationAndZoomRequest.getLatitude(), locationAndZoomRequest.getLongitude(), ZOOM_LEVEL_19_RADIUS);
-
-        return everythingWithinA17PointRadius.stream().map(restaurantMapper).collect(Collectors.toList());
-
+        //임시로 16 ~ 19 사이로 지정.
+        throw new IllegalArgumentException("Invalid zoom level: " + zoomLevel + ". Valid zoom levels are between 16 and 19.");
     }
 
+    private List<RestaurantNameResponse> getRestaurantNameResponses(UserLocationToZoomRequest locationAndZoomRequest , Integer zoomLeveValue) {
+        List<Restaurant> everythingWithinA17PointRadius = restaurantRepository.findAllWithinPoint(locationAndZoomRequest.getLatitude(), locationAndZoomRequest.getLongitude(), zoomLeveValue);
+
+        return everythingWithinA17PointRadius.stream()
+                .map(restaurantNameResponseMapper).collect(Collectors.toList());
+    }
 
 
 }
