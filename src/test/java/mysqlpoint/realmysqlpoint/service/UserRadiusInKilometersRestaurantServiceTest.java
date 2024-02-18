@@ -38,16 +38,14 @@ class UserRadiusInKilometersRestaurantServiceTest {
 
     @Test
     @DisplayName("반지름 250m 이내의 레스토랑 정보 찾기")
-    public void Restaurant_information_within_a_250m_radius() {
+    public void restaurantInformationWithin250mRadius() {
 
         //give : 현재 250M 위치
         double latitude = 35.8386548; //위도
         double longitude = 128.753059; //경도
 
-
         //when
         List<Restaurant> repositoryAllWithinPoint = jpaRestaurantRepository.findAllWithinPoint(latitude, longitude, ZOOM_LEVEL_19_RADIUS);
-
 
         //then
         Assertions.assertThat(repositoryAllWithinPoint).isNotEmpty();
@@ -55,10 +53,9 @@ class UserRadiusInKilometersRestaurantServiceTest {
 
     }
 
-
     @Test
     @DisplayName("현재 위치에서 250m 이외의 가게를 찾는 테스트 코드")
-    public void Restaurant_information_outside_a_250m_radius() {
+    public void restaurantInformationOutsideA250mRadius() {
 
         //give
         double latitude = 35.837872; //위도
