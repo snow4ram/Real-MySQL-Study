@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RestaurantLocationRequest {
 
-    private String message;
+    private String restaurantName;
 
     private Double latitude;
 
@@ -17,7 +17,7 @@ public class RestaurantLocationRequest {
 
     @Builder
     public RestaurantLocationRequest(String message, double latitude, double longitude) {
-        this.message = message;
+        this.restaurantName = message;
         this.latitude = latitude;
         this.longitude = longitude;
     }

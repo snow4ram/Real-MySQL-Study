@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @NoArgsConstructor
-public class UserLocationAndZoomRequest {
+public class UserLocationToZoomRequest {
 
     private Long zoomLevel;
 
@@ -17,7 +17,7 @@ public class UserLocationAndZoomRequest {
     private Double longitude;
 
 
-    public UserLocationAndZoomRequest(Long zoomLevel, Double latitude, Double longitude) {
+    public UserLocationToZoomRequest(Long zoomLevel, Double latitude, Double longitude) {
         this.zoomLevel = zoomLevel;
         this.latitude = latitude;
         this.longitude = longitude;

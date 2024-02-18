@@ -9,15 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserLocationRequest {
 
-    private String message;
-
     private Double latitude;
 
     private Double longitude;
 
     @Builder
-    public UserLocationRequest(String message, double latitude, double longitude) {
-        this.message = message;
+    public UserLocationRequest( double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }

@@ -2,8 +2,8 @@ package mysqlpoint.realmysqlpoint.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mysqlpoint.realmysqlpoint.controller.request.UserLocationAndZoomRequest;
 import mysqlpoint.realmysqlpoint.controller.request.RestaurantLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.request.UserLocationToZoomRequest;
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantNameResponse;
@@ -25,47 +25,50 @@ public class LocationController {
 
     private final RestaurantLocationSearchRepository restaurantLocationSearchRepository;
 
-    @GetMapping("/restaurant")
+    @GetMapping("/nearby_restaurant")
     public String map (){
         return "html/go";
     }
 
-    @PostMapping("/restaurant")
+    @PostMapping("/nearby_restaurant")
     @ResponseBody
-    public ResponseEntity<List<RestaurantNameResponse>> receiveLocationData(@RequestBody UserLocationRequest userLocationRequest) {
+    public ResponseEntity<List<RestaurantNameResponse>> getNearbyRestaurants(@RequestBody UserLocationRequest userLocationRequest) {
 
         List<RestaurantNameResponse> getRestaurantName = restaurants.locationCheck(userLocationRequest);
-
-        for (RestaurantNameResponse locations : getRestaurantName) {
-            log.info("주변 찾은 가게 = {}" , locations.toString());
-        }
 
         return ResponseEntity.ok().body(getRestaurantName);
     }
 
 
-    @PostMapping("/sendRestaurantName")
+    @PostMapping("/restaurant_details")
     @ResponseBody
-    public ResponseEntity<RestaurantLocationResponse> restaurantName(@RequestBody RestaurantLocationRequest userLocationRequest) {
-
-        log.info("가게 위치 정보 = {}" , userLocationRequest.getMessage());
-        log.info("가게 위치 정보 = {}" , userLocationRequest.getLatitude());
-        log.info("가게 위치 정보 = {}" , userLocationRequest.getLongitude());
+    public ResponseEntity<RestaurantLocationResponse> getRestaurantDetails(@RequestBody RestaurantLocationRequest userLocationRequest) {
 
         RestaurantLocationResponse search = restaurantLocationSearchRepository.search(userLocationRequest);
-
-        log.info("찾은 가게 정보 = {}" , search.toString());
 
         return ResponseEntity.ok().body(search);
     }
 
-
-    @PostMapping("/zoomLevel")
+    @PostMapping("/restaurant_list_view")
     @ResponseBody
-    public ResponseEntity<List<RestaurantNameResponse>> zoomLevel(@RequestBody UserLocationAndZoomRequest locationAndZoomRequest) {
-        log.info("현제 줌 값 = {}" , locationAndZoomRequest.getZoomLevel());
+    public UserLocationToZoomRequest getReceiveListViewByZoomLevel(@RequestBody UserLocationToZoomRequest userLocationRequest) {
+
+        log.info("현재 사용자의 위치의 목록 보기 = {} " , userLocationRequest.toString());
+
+        return userLocationRequest;
+    }
+
+
+
+    @PostMapping("/zoom_level")
+    @ResponseBody
+    public ResponseEntity<List<RestaurantNameResponse>> getRestaurantsByZoomLevel(@RequestBody UserLocationToZoomRequest locationAndZoomRequest) {
 
         List<RestaurantNameResponse> zoomLevelRestaurant = restaurants.getZoomLevelRestaurant(locationAndZoomRequest);
+
+        for (RestaurantNameResponse response : zoomLevelRestaurant) {
+            log.info("줌 레벨에 따라 보이는가게의 정보 = {} " ,response);
+        }
 
         return ResponseEntity.ok().body(zoomLevelRestaurant);
     }
