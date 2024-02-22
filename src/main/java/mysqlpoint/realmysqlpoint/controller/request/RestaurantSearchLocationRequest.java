@@ -6,19 +6,18 @@ import lombok.NoArgsConstructor;
 
 
 @Getter
-@Builder
 @NoArgsConstructor
-public class UserLocationToZoomRequest {
+public class RestaurantSearchLocationRequest {
 
-    private Long zoomLevel;
+    private Integer radius;
 
     private Double latitude;
 
     private Double longitude;
 
-
-    public UserLocationToZoomRequest(Long zoomLevel, Double latitude, Double longitude) {
-        this.zoomLevel = zoomLevel;
+    @Builder
+    public RestaurantSearchLocationRequest(Integer radius, Double latitude, Double longitude) {
+        this.radius = radius;
         this.latitude = latitude;
         this.longitude = longitude;
     }
