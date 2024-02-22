@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Search</title>
+</head>
+<body>
+
+<h2>음식점 검색</h2>
+
+<form id="searchForm">
+    <label for="sales">Sales:</label>
+    <input type="number" id="sales" name="sales" value="100"><br><br>
+
+    <label for="page">Page:</label>
+    <input type="number" id="page" name="page" value="1"><br><br>
+
+    <label for="pageSize">Page Size:</label>
+    <input type="number" id="pageSize" name="pageSize" value="20"><br><br>
+
+    <label for="neLatitude">NE Latitude:</label>
+    <input type="text" id="neLatitude" name="neLatitude" value="37.5665"><br><br>
+
+    <label for="neLongitude">NE Longitude:</label>
+    <input type="text" id="neLongitude" name="neLongitude" value="126.9780"><br><br>
+
+    <label for="swLatitude">SW Latitude:</label>
+    <input type="text" id="swLatitude" name="swLatitude" value="37.5555"><br><br>
+
+    <label for="swLongitude">SW Longitude:</label>
+    <input type="text" id="swLongitude" name="swLongitude" value="126.9700"><br><br>
+
+    <button type="button" onclick="searchRestaurants()">검색</button>
+</form>
+
+<script>
+function searchRestaurants() {
+    const form = document.getElementById('searchForm');
+    const formData = new FormData(form);
+    const params = Object.fromEntries(formData.entries());
+    
+    const queryString = new URLSearchParams(params).toString();
+    const url = `http://localhost:8080/search?${queryString}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text(); // 또는 필요에 따라 response.json()으로 JSON 응답 처리
+        })
+        .then(data => console.log(data)) // 성공적인 응답 처리
+        .catch(error => console.error('There was a problem with your fetch operation:', error)); // 에러 처리
+}
+</script>
+
+</body>
+</html>

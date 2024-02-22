@@ -104,7 +104,7 @@
             dragEndTimeout = setTimeout(function() {
                 var currentZoomLevel = map.getZoom(); // 현재 줌 레벨을 가져옴
                 var center = map.getCenter(); // 현재 지도 중심을 가져옴
-                sendZoomValue(currentZoomLevel, center.lat(), center.lng());
+                sendLocationToServer(currentZoomLevel, center.lat(), center.lng());
             }, 1500); // 줌 변경이 종료된 후 1.5초 후에 실행
         });
 
@@ -120,13 +120,16 @@
 
     function loadInitialRestaurants() {
         var center = map.getCenter();
-        sendLocationToServer(center.lat(), center.lng());
+        var currentZoomLevel = map.getZoom(); // 현재 줌 레벨을 가져옴
+        sendLocationToServer(currentZoomLevel ,center.lat(), center.lng());
     }
 
-    function sendLocationToServer(lat, lng) {
+    function sendLocationToServer(zoom , lat, lng) {
         var data = {
+            zoomLevel: zoom,
             latitude: lat,
             longitude: lng
+
         };
 
         fetch('/v1/api/nearby_restaurant', {
@@ -216,47 +219,6 @@
             })
             .catch((error) => {
                 console.error('Error:', error);
-            });
-    }
-
-    function sendZoomValue(zoom , lat, lng) {
-        console.log("Sending zoom level to the server:", zoom);
-        console.log("사용자 위치 lat : ", lat)
-        console.log("사용자 위치 lng : ", lng)
-        var zoomLevel = {
-            zoomLevel: zoom,
-            latitude: lat,
-            longitude: lng
-
-        };
-        fetch('/v1/api/zoom_level', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(zoomLevel),
-        })
-            .then(response => response.json())
-            .then(data => {
-                markersArray.forEach(marker => marker.setMap(null)); // 기존 마커 제거
-                markersArray = []; // 마커 배열 초기화
-                data.forEach(restaurant => {
-                    var marker = new naver.maps.Marker({
-                        position: new naver.maps.LatLng(restaurant.latitude, restaurant.longitude),
-                        map: map,
-                        title: restaurant.name
-                    });
-
-                    markersArray.push(marker);
-
-                    naver.maps.Event.addListener(marker, 'click', function() {
-                        sendRestaurantName(restaurant.name, restaurant.latitude, restaurant.longitude);
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('서버로의 요청을 보내는 데 실패했습니다.');
             });
     }
 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>식당 검색 결과</title>
+</head>
+<body>
+
+<div class="container">
+    <h1>식당 검색 결과</h1>
+    <div class="search-form">
+        <form th:action="@{/v1/api/search}" method="get"> <!-- 수정된 부분: th:action 경로를 서버의 엔드포인트와 일치시킴 -->
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="검색...">
+            <button type="submit">검색</button>
+        </form>
+    </div>
+    <div class="restaurant-list">
+        <table>
+            <thead>
+            <tr>
+                <th>식당 이름</th>
+                <th>주소</th>
+                <th>위치</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="restaurant : ${restaurants}">
+                <td th:text="${restaurant.name}">식당 이름</td>
+                <td th:text="${restaurant.address}">주소</td>
+                <td>위도: [[${restaurant.latitude}]], 경도: [[${restaurant.longitude}]]</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        <ul>
+            <li th:if="${restaurants.hasPrevious()}">
+                <a th:href="@{/search(keyword=${keyword}, page=${restaurants.number - 1}, size=${restaurants.size})}">이전</a>
+            </li>
+            <li th:each="pageNum : ${#numbers.sequence(1, restaurants.totalPages)}">
+                <a th:href="@{/search(keyword=${keyword}, page=${pageNum - 1}, size=${restaurants.size})}" th:text="${pageNum}"></a>
+            </li>
+            <li th:if="${restaurants.hasNext()}">
+                <a th:href="@{/search(keyword=${keyword}, page=${restaurants.number + 1}, size=${restaurants.size})}">다음</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
