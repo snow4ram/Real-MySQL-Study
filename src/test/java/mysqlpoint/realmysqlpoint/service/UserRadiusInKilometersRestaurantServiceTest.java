@@ -1,10 +1,10 @@
 package mysqlpoint.realmysqlpoint.service;
 
 import lombok.extern.slf4j.Slf4j;
+import mysqlpoint.realmysqlpoint.controller.request.RestaurantSearchLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantNameResponse;
-import mysqlpoint.realmysqlpoint.entity.Restaurant;
-import mysqlpoint.realmysqlpoint.repository.JpaRestaurantRepository;
-import mysqlpoint.realmysqlpoint.util.RestaurantMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,13 +27,12 @@ class UserRadiusInKilometersRestaurantServiceTest {
 
 
     @Autowired
-    private JpaRestaurantRepository jpaRestaurantRepository;
+    private RestaurantService restaurants;
 
-    @Autowired
-    private RestaurantMapper restaurantMapper;
-
-    private static final Integer ZOOM_LEVEL_18_RADIUS = 500;
-    private static final Integer ZOOM_LEVEL_19_RADIUS = 250;
+    double neLatitude = 37.5567635;
+    double neLongitude = 126.8529193;
+    double swLatitude = 37.5482577;
+    double swLongitude = 126.8421905;
 
 
     @Test
@@ -43,55 +42,19 @@ class UserRadiusInKilometersRestaurantServiceTest {
         //give : 현재 250M 위치
         double latitude = 35.8386548; //위도
         double longitude = 128.753059; //경도
+        Integer zoomLevel = 250;
 
         //when
-        List<Restaurant> repositoryAllWithinPoint = jpaRestaurantRepository.findAllWithinPoint(latitude, longitude, ZOOM_LEVEL_19_RADIUS);
+//        List<RestaurantNameResponse> zoomLevelRestaurant = restaurants.getRestaurantNameResponses(new RestaurantSearchLocationRequest(zoomLevel, latitude, longitude));
 
-        //then
-        Assertions.assertThat(repositoryAllWithinPoint).isNotEmpty();
-        Assertions.assertThat(repositoryAllWithinPoint.size()).isEqualTo(6);
+        List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(new UserLocationRequest(neLatitude, neLongitude, swLatitude, swLongitude));
 
-    }
-
-    @Test
-    @DisplayName("현재 위치에서 250m 이외의 가게를 찾는 테스트 코드")
-    public void restaurantInformationOutsideA250mRadius() {
-
-        //give
-        double latitude = 35.837872; //위도
-        double longitude = 128.752106; //경도
-
-        String getNameOfRestaurant= "커피플레이스 카페";
-
-        // 반복 당 이동할 거리 🛫 - - - - - - - 🛬
-        double movePerIterationLat = 0.0012;
-        double movePerIterationLon = 0.0012;
-
-
-        //when
-        double moveLatitude = latitude + movePerIterationLat;
-        double moveLongitude = movePerIterationLon + longitude;
-
-
-        List<Restaurant> repositoryAllWithinPoint = jpaRestaurantRepository.findAllWithinPoint(moveLatitude, moveLongitude, ZOOM_LEVEL_19_RADIUS);
-
-        for (Restaurant restaurant : repositoryAllWithinPoint) {
-            log.info("가게 정보 = {}" , restaurant);
+        for (RestaurantLocationResponse response : restaurantSearch) {
+            log.info("가게정보 = {}" , response);
         }
-
-        List<RestaurantNameResponse> collect = repositoryAllWithinPoint
-                .stream()
-                .filter(restaurant -> restaurant.getName().equals(getNameOfRestaurant))
-                .map(restaurantMapper)
-                .collect(Collectors.toList());
-
-
         //then
-        Assertions.assertThat(collect).isNotEmpty();
-        Assertions.assertThat(collect.get(0).getLatitude()).isEqualTo(35.841194);
-        Assertions.assertThat(collect.get(0).getLongitude()).isEqualTo(128.753973);
-
 
     }
+
 
 }

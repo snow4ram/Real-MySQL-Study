@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -38,12 +39,24 @@ public class GetUserLocationRestaurantTest {
     @Autowired
     private RestaurantService solution;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public void updateAutoIncrementValue(String tableName, int newValue) {
+        String sql = String.format("ALTER TABLE %s AUTO_INCREMENT = %d", tableName, newValue);
+        jdbcTemplate.execute(sql);
+    }
+
+
     @Test
     @Commit
     public void main() {
         //35.840526  128.700646
         //35.8267887 128.7163574
-        Location location = new Location(35.844847 ,  128.695932);
+        //35.8404979 128.7547088
+
+        Location location = new Location( 37.557012 , 126.843543);
+
 
         // JTS 라이브러리의 GeometryFactory를 사용하여 Point 객체 생성
         GeometryFactory geometryFactory = new GeometryFactory();
@@ -66,8 +79,8 @@ public class GetUserLocationRestaurantTest {
         // Restaurant 인스턴스 생성
         Restaurant restaurant = Restaurant.builder()
                 .category("Korean")
-                .name("매호 BBQ 치킨")
-                .address("매호 BBQ 치킨")
+                .name("화동순대국 우장산")
+                .address("화동순대국 공항대로 38길")
                 .location(point)
                 .contact(10323000001L)
                 .menu(menu)
@@ -86,15 +99,15 @@ public class GetUserLocationRestaurantTest {
         double latitude = 35.8393357; //위도
         double longitude = 128.7210818; //경도
         double r = 1000;
-
-        final GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-        List<Restaurant> restaurants = repository.findAllWithinPoint(latitude , longitude , r);
-
-        for (Restaurant restaurant : restaurants) {
-            log.info("결과값 = {}", restaurant);
-        }
+//
+//        final GeometryFactory geometryFactory = new GeometryFactory();
+//        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+//
+//        List<Restaurant> restaurants = repository.findAllWithinPoint(latitude , longitude , r);
+//
+//        for (Restaurant restaurant : restaurants) {
+//            log.info("결과값 = {}", restaurant);
+//        }
 
     }
 
@@ -102,6 +115,7 @@ public class GetUserLocationRestaurantTest {
     @DisplayName("스프링 JPA Query 사용")
     public void point() {
 
+        repository.deleteById(22L);
         double latitude = 35.8393357; //위도
 
         double longitude = 128.7210818; //경도
@@ -111,11 +125,11 @@ public class GetUserLocationRestaurantTest {
         final GeometryFactory geometryFactory = new GeometryFactory();
         Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
-        List<Restaurant> restaurants = repository.findAllWithinPoints(point , r);
-
-        for (Restaurant restaurant : restaurants) {
-            log.info("결과값 = {}", restaurant);
-        }
+//        List<Restaurant> restaurants = repository.findAllWithinPoints(point , r);
+//
+//        for (Restaurant restaurant : restaurants) {
+//            log.info("결과값 = {}", restaurant);
+//        }
 
 
 
