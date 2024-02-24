@@ -5,6 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface RestaurantRepositoryCustom {
-    Page<RestaurantLocationResponse> searchRestaurantsInArea(String keyword, double swLatitude, double swLongitude, double neLatitude, double neLongitude, Pageable pageable);
+    Page<RestaurantLocationResponse> getSearchRestaurantsInArea(String keyword,
+                                                             double swLatitude,
+                                                             double swLongitude,
+                                                             double neLatitude,
+                                                             double neLongitude,
+                                                             double lat,
+                                                             double lon,
+                                                             Pageable pageable);
 
 }

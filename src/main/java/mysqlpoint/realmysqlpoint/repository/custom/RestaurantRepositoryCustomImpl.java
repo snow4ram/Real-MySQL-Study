@@ -21,14 +21,9 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
 
     private final EntityManager entityManager;
 
-    @Override
-    public Page<RestaurantLocationResponse> searchRestaurantsInArea(
-            String keyword,
-            double swLatitude, double swLongitude,
-            double neLatitude, double neLongitude,
-            Pageable pageable) {
+    public Page<RestaurantLocationResponse> getSearchRestaurantsInArea(
+            String shopName, double swLatitude, double swLongitude, double neLatitude, double neLongitude, double userLocationLatitude, double userLocationLongitude, Pageable pageable) {
 
-        //현제 위치
         String polygonText = "ST_PolygonFromText('POLYGON((" +
                 swLongitude + " " + neLatitude + ", " +
                 neLongitude + " " + neLatitude + ", " +
@@ -36,68 +31,93 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
                 swLongitude + " " + swLatitude + ", " +
                 swLongitude + " " + neLatitude + "))')";
 
-        //현제 위치에서 가게를 찾는다 폴리곤라인으로
-        String baseQuery = "SELECT r.* FROM restaurant r WHERE ST_Contains(" + polygonText + ", r.location)";
+        String nativeQuery = "SELECT " +
+                        "r.id, " +
+                        "r.category, " +
+                        "r.name, " +
+                        "r.location, " +
+                        "r.address, " +
+                        "r.contact, " +
+                        "r.menu, " +
+                        "r.time, " +
+                        "r.provision, " +
+                        "ST_DISTANCE_SPHERE(POINT(:userLocationLatitude, :userLocationLongitude), r.location) as distance " +
+                        "FROM restaurant r " +
+                        "WHERE ST_Contains(" + polygonText + ", r.location) " +
+                        "AND r.deleted_at is null ";
 
-        //제약 조건 추가 부분
-        if (keyword != null) {
-            baseQuery += " AND (r.name LIKE :keyword OR r.address LIKE :keyword)";
+        if (shopName != null) {
+            nativeQuery += "AND (r.name LIKE :keyword) ";
         }
 
-        //Query 에 추가
-        Query query = entityManager.createNativeQuery(baseQuery, Restaurant.class);
+        nativeQuery += "ORDER BY distance DESC";
 
-        if (keyword != null && !keyword.isEmpty()) {
-            query.setParameter("keyword", "%" + keyword + "%");
+        Query query = entityManager.createNativeQuery(nativeQuery, Restaurant.class);
+        query.setParameter("userLocationLatitude", userLocationLatitude);
+        query.setParameter("luserLocationLongitudeon", userLocationLongitude);
+
+        if (shopName != null) {
+            query.setParameter("keyword", "%" + shopName + "%");
         }
 
-        List<Restaurant> resultList = query.getResultList();
+        List<Restaurant> restaurantList = query.getResultList();
 
-        if (resultList.isEmpty()) {
-            return search(keyword, pageable);
+        if (restaurantList.isEmpty()) {
+            return getSearchRestaurantsNotInArea(shopName, pageable , userLocationLatitude , userLocationLongitude);
         }
 
-        List<RestaurantLocationResponse> responseList = resultList.stream()
+        return getRestaurantLocationResponses(pageable, restaurantList);
+    }
+
+    public Page<RestaurantLocationResponse> getSearchRestaurantsNotInArea(String shopName, Pageable pageable , double userLocationLatitude, double userLocationLongitude) {
+
+        String nativeQuery = "SELECT " +
+                    "r.id, " +
+                    "r.category, " +
+                    "r.name, " +
+                    "r.location, " +
+                    "r.address, " +
+                    "r.contact, " +
+                    "r.menu, " +
+                    "r.time, " +
+                    "r.provision, " +
+                    "ST_DISTANCE_SPHERE(POINT(:userLocationLatitude, :userLocationLongitude), r.location) as distance " +
+                    "FROM restaurant r ";
+
+
+        if (shopName != null) {
+            nativeQuery += "WHERE (r.name LIKE :newSearch) ";
+        }
+
+        nativeQuery += "AND r.deleted_at is null ";
+
+        nativeQuery += "ORDER BY distance DESC";
+
+
+        Query query = entityManager.createNativeQuery(nativeQuery, Restaurant.class);
+        query.setParameter("userLocationLatitude", userLocationLatitude);
+        query.setParameter("userLocationLongitude", userLocationLongitude);
+
+        if (shopName != null) {
+            query.setParameter("newSearch", "%" + shopName + "%");
+        }
+
+        List<Restaurant> restaurantList = query.getResultList();
+
+        return getRestaurantLocationResponses(pageable, restaurantList);
+
+    }
+
+
+    private static PageImpl<RestaurantLocationResponse> getRestaurantLocationResponses(Pageable pageable, List<Restaurant> restaurantList) {
+        List<RestaurantLocationResponse> responseList = restaurantList.stream()
                 .map(RestaurantLocationResponse::of)
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
 
-        int end = Math.min((start + pageable.getPageSize()), resultList.size());
+        int end = Math.min((start + pageable.getPageSize()), restaurantList.size());
 
         return new PageImpl<>(responseList.subList(start, end), pageable, responseList.size());
-
-    }
-
-
-    public Page<RestaurantLocationResponse> search(String newSearch, Pageable pageable) {
-
-        String baseQuery = "SELECT r.* FROM restaurant r";
-
-        if (newSearch != null && !newSearch.isEmpty()) {
-            baseQuery += " WHERE (r.name LIKE :keyword OR r.address LIKE :keyword)";
-        }
-        // 쿼리 실행 부분
-        Query query = entityManager.createNativeQuery(baseQuery, Restaurant.class);
-
-        if (newSearch != null && !newSearch.isEmpty()) {
-            query.setParameter("keyword", "%" + newSearch + "%");
-        }
-
-        List<Restaurant> resultList = query.getResultList();
-
-        List<RestaurantLocationResponse> responseList = resultList.stream()
-                .map(RestaurantLocationResponse::of)
-                .toList();
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), resultList.size());
-
-        PageImpl<RestaurantLocationResponse> restaurantLocationResponses = new PageImpl<>(responseList.subList(start, end), pageable, responseList.size());
-
-        for (RestaurantLocationResponse restaurantLocationRespons : restaurantLocationResponses) {
-            log.info("가게 정보 = {}", restaurantLocationRespons.toString());
-        }
-        return restaurantLocationResponses;
     }
 }
