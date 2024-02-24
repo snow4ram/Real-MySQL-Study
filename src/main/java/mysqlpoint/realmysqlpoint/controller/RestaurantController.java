@@ -24,10 +24,10 @@ public class RestaurantController {
 
     private final RestaurantService restaurants;
 
-    private final RestaurantRepositoryCustomImpl restaurantRepositoryCustom;
 
 
-    @GetMapping("/nearby-restaurant")
+
+    @GetMapping("/restaurant")
     public ResponseEntity<List<RestaurantLocationResponse>> nearby(UserLocationRequest request) {
         List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(request);
         return ResponseEntity.ok().body(restaurantSearch);
@@ -61,10 +61,11 @@ public class RestaurantController {
         double swLatitude = 37.5482577;
         double swLongitude = 126.8421905;
 
-        PageRequest pageRequest = PageRequest.of(page - 1, pageSize); // 페이지 번호는 0부터 시작
+        double lon = 126.845541;
+        double lat = 37.552201;
 
-        Page<RestaurantLocationResponse> restaurantLocationResponses = restaurantRepositoryCustom.searchRestaurantsInArea(
-                keyword, swLatitude, swLongitude, neLatitude, neLongitude, pageRequest);
+        Page<RestaurantLocationResponse> restaurantLocationResponses = restaurants.getSearch(
+                keyword, swLatitude, swLongitude, neLatitude, neLongitude, lat , lon,  page  ,  pageSize);
 
         model.addAttribute("restaurants", restaurantLocationResponses);
 

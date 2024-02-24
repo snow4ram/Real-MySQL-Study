@@ -5,7 +5,6 @@ import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
 
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
 import mysqlpoint.realmysqlpoint.repository.custom.RestaurantRepositoryCustomImpl;
-import mysqlpoint.realmysqlpoint.service.RestaurantService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +36,10 @@ class RestaurantLocationSearchRepositoryImplTest {
         double swLatitude = 37.5482577;
         double swLongitude = 126.8421905;
 
+        double lon = 126.845541;
+        double lat = 37.552201;
+
+
         UserLocationRequest locationPolygonBounds = new UserLocationRequest(
                 neLatitude,
                 neLongitude,
@@ -46,7 +49,7 @@ class RestaurantLocationSearchRepositoryImplTest {
 
         Pageable pageable = PageRequest.of(0 ,20);
 
-        Page<RestaurantLocationResponse> restaurantLocationResponses = restaurantRepositoryCustom.searchRestaurantsInArea("우리집" , neLatitude, neLongitude, swLatitude, swLongitude, pageable);
+        Page<RestaurantLocationResponse> restaurantLocationResponses = restaurantRepositoryCustom.getSearchRestaurantsInArea("우리집" , neLatitude, neLongitude, swLatitude, swLongitude, lat , lon, pageable);
 
         for (RestaurantLocationResponse restaurantLocationRespons : restaurantLocationResponses) {
             log.info("가게정보 = {}" , restaurantLocationRespons);

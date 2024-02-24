@@ -7,15 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.request.RestaurantSearchLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
-import mysqlpoint.realmysqlpoint.controller.response.RestaurantNameResponse;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
 import mysqlpoint.realmysqlpoint.repository.JpaRestaurantRepository;
-import mysqlpoint.realmysqlpoint.util.RestaurantMapper;
+import mysqlpoint.realmysqlpoint.repository.custom.RestaurantRepositoryCustomImpl;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +26,7 @@ public class RestaurantService {
 
     private final JpaRestaurantRepository restaurantRepository;
 
-    private final RestaurantMapper restaurantNameResponseMapper;
+    private final RestaurantRepositoryCustomImpl restaurantRepositoryCustom;
 
     public List<RestaurantLocationResponse> getRestaurantSearch(UserLocationRequest boundsRequest) {
 
@@ -39,29 +39,12 @@ public class RestaurantService {
     }
 
 
-    public void getSearch(int page , int pageSize , double neLatitude, double neLongitude, double swLatitude, double swLongitude) {
+    public Page<RestaurantLocationResponse> getSearch(String keyword , double neLatitude, double neLongitude, double swLatitude, double swLongitude , double lat , double lon ,int page  , int pageSize) {
 
-        PageRequest pageable = PageRequest.of(page - 1, pageSize);
+        PageRequest pages = PageRequest.of(page - 1, pageSize);
 
-        int start = (int) pageable.getOffset();
-
-        int end = Math.min((start + pageable.getPageSize()), 15);
-
-        log.info("현제 페이지 = {}" , start);
-        log.info("마지막 페이지 = {}" , end);
-
+        return restaurantRepositoryCustom.getSearchRestaurantsInArea(
+                keyword, swLatitude, swLongitude, neLatitude, neLongitude, lat , lon, pages);
     }
-
-
-
-    public void getRestaurantNameResponses(RestaurantSearchLocationRequest locationAndZoomRequest) {
-//        List<Restaurant> everythingWithinA17PointRadius =
-//                restaurantRepository.findAllWithinPoint(locationAndZoomRequest.getLatitude(), locationAndZoomRequest.getLongitude(), locationAndZoomRequest.getRadius());
-//
-//        return everythingWithinA17PointRadius.stream()
-//                .map(restaurantNameResponseMapper)
-//                .collect(Collectors.toList());
-    }
-
 
 }
