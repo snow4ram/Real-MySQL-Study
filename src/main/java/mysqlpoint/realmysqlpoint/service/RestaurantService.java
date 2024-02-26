@@ -33,7 +33,7 @@ public class RestaurantService {
         double lat = 37.551779;
         double lon = 126.843123;
 
-        List<Restaurant> allWithinPolygon = restaurantRepository.findAllWithinPoint(lat,lon, boundsRequest.getNeLatitude(), boundsRequest.getNeLongitude(), boundsRequest.getSwLatitude(), boundsRequest.getSwLongitude());
+        List<Restaurant> allWithinPolygon = restaurantRepository.findAllWithinPolygon(boundsRequest.getNeLatitude(), boundsRequest.getNeLongitude(), boundsRequest.getSwLatitude(), boundsRequest.getSwLongitude());
 
         return allWithinPolygon.stream().map(RestaurantLocationResponse::of).collect(Collectors.toList());
     }
@@ -41,7 +41,7 @@ public class RestaurantService {
 
     public Page<RestaurantLocationResponse> getSearch(String keyword , double neLatitude, double neLongitude, double swLatitude, double swLongitude , double lat , double lon ,int page  , int pageSize) {
 
-        PageRequest pages = PageRequest.of(page - 1, pageSize);
+        PageRequest pages = PageRequest.of(page , pageSize);
 
         return restaurantRepositoryCustom.getSearchRestaurantsInArea(
                 keyword, swLatitude, swLongitude, neLatitude, neLongitude, lat , lon, pages);

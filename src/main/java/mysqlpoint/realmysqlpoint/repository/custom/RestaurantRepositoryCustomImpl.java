@@ -21,45 +21,57 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
 
     private final EntityManager entityManager;
 
+    //무한 스크롤 default values = 20 -> N 까지
+    //첫번쨰는 현제 위치의 폴리곤 라인안에 있는 가게의 정보를 모두 보여주는게 1차 목표, 이 영역안에 있는 가게를 찾는거죠 가 , 나 , 사  이 영역안에 있는 가게만 찾는걸 목표로 했고
+    //두번째로는 검색을 했는데 이 영역안에 이 가게가 없으면 -> 밖에 라인으로 검색 을 하는거죠
     public Page<RestaurantLocationResponse> getSearchRestaurantsInArea(
-            String shopName, double swLatitude, double swLongitude, double neLatitude, double neLongitude, double userLocationLatitude, double userLocationLongitude, Pageable pageable) {
+            String shopName,  double neLatitude, double neLongitude, double swLatitude, double swLongitude , double userLocationLatitude, double userLocationLongitude, Pageable pageable) {
 
-        String polygonText = "ST_PolygonFromText('POLYGON((" +
+        String polygon = "ST_PolygonFromText('POLYGON((" +
                 swLongitude + " " + neLatitude + ", " +
                 neLongitude + " " + neLatitude + ", " +
                 neLongitude + " " + swLatitude + ", " +
                 swLongitude + " " + swLatitude + ", " +
                 swLongitude + " " + neLatitude + "))')";
 
-        String nativeQuery = "SELECT " +
-                        "r.id, " +
-                        "r.category, " +
-                        "r.name, " +
-                        "r.location, " +
-                        "r.address, " +
-                        "r.contact, " +
-                        "r.menu, " +
-                        "r.time, " +
-                        "r.provision, " +
-                        "ST_DISTANCE_SPHERE(POINT(:userLocationLatitude, :userLocationLongitude), r.location) as distance " +
-                        "FROM restaurant r " +
-                        "WHERE ST_Contains(" + polygonText + ", r.location) " +
-                        "AND r.deleted_at is null ";
+        String searchRestaurantsInAreaQuery =
+                "SELECT "
+                        + "r.id,"
+                        + "r.member_id,"
+                        + "r.category,"
+                        + "r.name,"
+                        + "r.location,"
+                        + "r.address,"
+                        + "r.contact,"
+                        + "r.menu,"
+                        + "r.time,"
+                        + "r.provision,"
+                        + "r.created_at,"
+                        + "r.updated_at,"
+                        + "r.deleted_at,"
+                        + "ST_DISTANCE_SPHERE(POINT(:userLocationLongitude, :userLocationLatitude), r.location) as distance "
+                            + "FROM restaurant r "
+                            + "JOIN member m on r.member_id = m.id "
+                            + "WHERE ST_Contains(" + polygon + ", r.location) "
+                            + "AND r.deleted_at is null ";
 
         if (shopName != null) {
-            nativeQuery += "AND (r.name LIKE :keyword) ";
+            searchRestaurantsInAreaQuery += "AND (r.name LIKE :shopName) ";
+            //searchRestaurantsInAreaQuery += "MATCH (r.name) AGAINST(:shopName IN BOOLEAN MODE) ";
         }
 
-        nativeQuery += "ORDER BY distance DESC";
+        searchRestaurantsInAreaQuery += "ORDER BY distance ASC";
 
-        Query query = entityManager.createNativeQuery(nativeQuery, Restaurant.class);
+        Query query = entityManager.createNativeQuery(searchRestaurantsInAreaQuery, Restaurant.class);
         query.setParameter("userLocationLatitude", userLocationLatitude);
-        query.setParameter("luserLocationLongitudeon", userLocationLongitude);
+        query.setParameter("userLocationLongitude", userLocationLongitude);
 
+        //이상 ,,,, 너무 한방 쿼리,,
         if (shopName != null) {
-            query.setParameter("keyword", "%" + shopName + "%");
+            query.setParameter("shopName", "%" + shopName + "%");
         }
 
+        //
         List<Restaurant> restaurantList = query.getResultList();
 
         if (restaurantList.isEmpty()) {
@@ -69,38 +81,38 @@ public class RestaurantRepositoryCustomImpl implements RestaurantRepositoryCusto
         return getRestaurantLocationResponses(pageable, restaurantList);
     }
 
-    public Page<RestaurantLocationResponse> getSearchRestaurantsNotInArea(String shopName, Pageable pageable , double userLocationLatitude, double userLocationLongitude) {
+    private Page<RestaurantLocationResponse> getSearchRestaurantsNotInArea(String shopName, Pageable pageable , double userLocationLatitude, double userLocationLongitude) {
 
-        String nativeQuery = "SELECT " +
-                    "r.id, " +
-                    "r.category, " +
-                    "r.name, " +
-                    "r.location, " +
-                    "r.address, " +
-                    "r.contact, " +
-                    "r.menu, " +
-                    "r.time, " +
-                    "r.provision, " +
-                    "ST_DISTANCE_SPHERE(POINT(:userLocationLatitude, :userLocationLongitude), r.location) as distance " +
-                    "FROM restaurant r ";
+        String searchRestaurantsNotInAreaQuery =
+                "SELECT "
+                        + "r.id,"
+                        + "r.member_id,"
+                        + "r.category,"
+                        + "r.name,"
+                        + "r.location,"
+                        + "r.address,"
+                        + "r.contact,"
+                        + "r.menu,"
+                        + "r.time,"
+                        + "r.provision,"
+                        + "r.created_at,"
+                        + "r.updated_at,"
+                        + "r.deleted_at,"
+                        + "ST_DISTANCE_SPHERE(POINT(:userLocationLongitude, :userLocationLatitude), r.location) as distance "
+                            + "FROM restaurant r "
+                            + "JOIN member m on r.member_id = m.id "
+                            + "WHERE (r.name LIKE :shopName) "
+                            + "AND r.deleted_at is null ";
+
+        searchRestaurantsNotInAreaQuery += "ORDER BY distance ASC";
 
 
-        if (shopName != null) {
-            nativeQuery += "WHERE (r.name LIKE :newSearch) ";
-        }
-
-        nativeQuery += "AND r.deleted_at is null ";
-
-        nativeQuery += "ORDER BY distance DESC";
-
-
-        Query query = entityManager.createNativeQuery(nativeQuery, Restaurant.class);
+        Query query = entityManager.createNativeQuery(searchRestaurantsNotInAreaQuery, Restaurant.class);
         query.setParameter("userLocationLatitude", userLocationLatitude);
         query.setParameter("userLocationLongitude", userLocationLongitude);
 
-        if (shopName != null) {
-            query.setParameter("newSearch", "%" + shopName + "%");
-        }
+        query.setParameter("shopName", "%" + shopName + "%");
+
 
         List<Restaurant> restaurantList = query.getResultList();
 

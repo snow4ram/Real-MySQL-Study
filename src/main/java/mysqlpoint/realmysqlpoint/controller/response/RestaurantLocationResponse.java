@@ -16,6 +16,8 @@ public class RestaurantLocationResponse {
 
     private Long id;
 
+    private Long memberId;
+
     private String category;
 
     private String name;
@@ -34,24 +36,16 @@ public class RestaurantLocationResponse {
 
     private Map<String, Object> provision;
 
+    private String status;
 
-//    public RestaurantLocationResponse(Restaurant restaurant) {
-//        id = restaurant.getId();
-//        category = restaurant.getCategory();
-//        name = restaurant.getName();
-//        address = restaurant.getAddress();
-//        longitude = restaurant.getLocation().getX();
-//        latitude = restaurant.getLocation().getY();
-//        contact = restaurant.getContact();
-//        menu = restaurant.getMenu();
-//        time = restaurant.getTime();
-//        provision = restaurant.getProvision();
-//
-//    }
+    public void setBusinessStatus(String status) {
+        this.status = status;
+    }
 
     public static RestaurantLocationResponse of(Restaurant restaurant) {
         return RestaurantLocationResponse.builder()
                 .id(restaurant.getId())
+                .memberId(restaurant.getMembers().getId())
                 .category(restaurant.getCategory())
                 .name(restaurant.getName())
                 .address(restaurant.getAddress())

@@ -47,7 +47,7 @@ public class RestaurantController {
     @GetMapping("/search")
     public String searchRestaurantName(
             @RequestParam(name = "keyword" ,required = false) String keyword,
-            @RequestParam(name = "page", defaultValue = "1") int page, // 수정된 부분
+            @RequestParam(name = "page", defaultValue = "0") int page, // 수정된 부분
             @RequestParam(name = "size", defaultValue = "10") int pageSize, // 수정된 부분
             Model model) {
 
@@ -61,15 +61,15 @@ public class RestaurantController {
         double swLatitude = 37.5482577;
         double swLongitude = 126.8421905;
 
-        double lon = 126.845541;
         double lat = 37.552201;
+        double lon = 126.845541;
 
         Page<RestaurantLocationResponse> restaurantLocationResponses = restaurants.getSearch(
                 keyword, swLatitude, swLongitude, neLatitude, neLongitude, lat , lon,  page  ,  pageSize);
 
         model.addAttribute("restaurants", restaurantLocationResponses);
-
         model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page); // 사용자에게 표시될 현재 페이지 번호
 
         for (RestaurantLocationResponse restaurantLocationRespons : restaurantLocationResponses) {
             log.info("찾은 레스토랑 정보 = {}" , restaurantLocationRespons);
