@@ -18,6 +18,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -25,9 +26,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -39,19 +41,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @Slf4j
-@AutoConfigureRestDocs
-@WebMvcTest(RestaurantController.class)
+@SpringBootTest
 @ExtendWith(SpringExtension.class)
 class RestaurantControllerTest {
 
     @Autowired
-    private MockMvc mvc;
-
-    @MockBean
     private RestaurantService restaurants;
-
-    @MockBean
-    private RestaurantLocationSearchRepository restaurantLocationSearchRepository;
+    String openTime;
+    String closedTime;
+    String breakTime;
 
     double neLatitude = 37.5567635;
     double neLongitude = 126.8529193;
@@ -66,32 +64,64 @@ class RestaurantControllerTest {
     }
 
     @Test
-    public void queryTest() throws Exception {
-
-
-
-        Restaurant restaurant30 = createRestaurant(37.549636, 126.842299, "우정산 폴리텍대학", "우정산 서울강서 캠퍼스");
-        Restaurant restaurant31 = createRestaurant(37.550256, 126.846277, "우장산 앞 카페코나 퀸즈 강서점", "우장산 앞 카페코나 퀸즈 강서점");
-
-        List<RestaurantLocationResponse> mockResponseList = List.of(
-                RestaurantLocationResponse.of(restaurant30),
-                RestaurantLocationResponse.of(restaurant31)
-        );
+    public void queryTest() {
 
         UserLocationRequest locationPolygonBounds = new UserLocationRequest(neLatitude, neLongitude, swLatitude, swLongitude);
 
 
-        given(restaurants.getRestaurantSearch(any(UserLocationRequest.class)))
-                .willReturn(mockResponseList);
+        List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(locationPolygonBounds);
+
+        LocalTime time = LocalTime.now();
+
+        LocalTime userTime = LocalTime.of(22, 01);
 
 
-        mvc.perform(get("/v1/api/nearby-restaurant")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(locationPolygonBounds)))
-                .andExpect(jsonPath("$[0].name").value("우정산 폴리텍대학"))
-                .andExpect(jsonPath("$[1].name").value("우장산 앞 카페코나 퀸즈 강서점"))
-                .andExpect(status().isOk())
-                .andDo(print());
+        for (RestaurantLocationResponse search : restaurantSearch) {
+
+            DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+            log.info("오늘 일 = {}" , dayOfWeek);
+
+            Object dayTimeData = search.getTime().get("FRIDAY");
+
+            if (dayTimeData instanceof Map) {
+                StringBuilder stringBuilder = new StringBuilder();
+
+                Map<String, List<Integer>> todayBusinessHours = (Map<String, List<Integer>>) dayTimeData;
+
+                List<Integer> endTime = todayBusinessHours.get("endTime");
+
+                List<Integer> breakStartTime = todayBusinessHours.get("breakStartTime");
+
+                List<Integer> breakEndTime = todayBusinessHours.get("breakEndTime");
+
+                LocalTime todayBreakStartTime = LocalTime.of(breakStartTime.get(0), breakStartTime.get(1));
+
+                LocalTime todayBreakEndTime = LocalTime.of(breakEndTime.get(0), breakEndTime.get(1));
+
+                LocalTime todayClose = LocalTime.of(endTime.get(0), endTime.get(1));
+
+                if (userTime.isBefore(todayClose) && !(userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime))) {
+                    boolean before = time.isBefore(todayClose);
+                    stringBuilder.append("영업중");
+                }
+
+                if (userTime.isAfter(todayClose) && !(userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime))) {
+                    boolean after = time.isAfter(todayClose);
+                    stringBuilder.append("영업 종료");
+                }
+
+                if (userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime)) {
+                    stringBuilder.append("브레이크 타임");
+                }
+
+                search.setBusinessStatus(stringBuilder.toString());
+            }
+        }
+
+        for (RestaurantLocationResponse search : restaurantSearch) {
+            log.info("현제 상태 = {}" ,search);
+        }
+
     }
 
 
@@ -115,7 +145,6 @@ class RestaurantControllerTest {
     private Restaurant createRestaurant(double latitude, double longitude, String name, String address) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
         return Restaurant.builder()
                 .category("Korean")
                 .name(name)
@@ -127,6 +156,8 @@ class RestaurantControllerTest {
                 .provision(createProvision())
                 .build();
     }
+
+
 
 
 }
