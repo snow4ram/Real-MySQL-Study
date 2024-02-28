@@ -7,22 +7,25 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.Type;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
 @Entity
-@ToString
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class Restaurant {
+public class Restaurant extends BaseEntity{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Member members;
 
     @Column(length = 50)
     @Comment("레스토랑 분류")
@@ -57,5 +60,17 @@ public class Restaurant {
     @Comment("레스토랑의 편의시설")
     @Column(name = "provision", columnDefinition ="json")
     private Map<String , Object> provision = new HashMap<>();
+
+    @OneToMany(mappedBy = "restaurant")
+    private List<RestaurantStock> restaurantStocks = new ArrayList<>();
+
+
+    public static Point genPoint(Double longitude, Double latitude) {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        //new Coordinate(경도, 위도)
+        Coordinate coordinate = new Coordinate(longitude, latitude);
+        //Point(위도 , 경도)
+        return geometryFactory.createPoint(coordinate);
+    }
 
 }

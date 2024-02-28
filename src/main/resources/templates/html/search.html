@@ -9,7 +9,7 @@
 <div class="container">
     <h1>식당 검색 결과</h1>
     <div class="search-form">
-        <form th:action="@{/v1/api/search}" method="get"> <!-- 수정된 부분: th:action 경로를 서버의 엔드포인트와 일치시킴 -->
+        <form th:action="@{/v1/api/search}" method="get">
             <input type="text" name="keyword" th:value="${keyword}" placeholder="검색...">
             <button type="submit">검색</button>
         </form>
@@ -35,13 +35,13 @@
     <div class="pagination">
         <ul>
             <li th:if="${restaurants.hasPrevious()}">
-                <a th:href="@{/search(keyword=${keyword}, page=${restaurants.number - 1}, size=${restaurants.size})}">이전</a>
+                <a th:href="@{/v1/api/search(keyword=${keyword}, page=${currentPage - 1}, size=${restaurants.size})}">이전</a>
             </li>
             <li th:each="pageNum : ${#numbers.sequence(1, restaurants.totalPages)}">
-                <a th:href="@{/search(keyword=${keyword}, page=${pageNum - 1}, size=${restaurants.size})}" th:text="${pageNum}"></a>
+                <a th:href="@{/v1/api/search(keyword=${keyword}, page=${pageNum - 1}, size=${restaurants.size})}" th:text="${pageNum}" th:class="${pageNum == currentPage ? 'active' : ''}"></a>
             </li>
             <li th:if="${restaurants.hasNext()}">
-                <a th:href="@{/search(keyword=${keyword}, page=${restaurants.number + 1}, size=${restaurants.size})}">다음</a>
+                <a th:href="@{/v1/api/search(keyword=${keyword}, page=${currentPage + 1}, size=${restaurants.size})}">다음</a>
             </li>
         </ul>
     </div>

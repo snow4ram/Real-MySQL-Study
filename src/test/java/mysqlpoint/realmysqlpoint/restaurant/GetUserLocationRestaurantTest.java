@@ -1,30 +1,27 @@
 package mysqlpoint.realmysqlpoint.restaurant;
 
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import mysqlpoint.realmysqlpoint.entity.Location;
-import mysqlpoint.realmysqlpoint.entity.Restaurant;
+import mysqlpoint.realmysqlpoint.entity.*;
+import mysqlpoint.realmysqlpoint.enumerated.MemberRole;
+import mysqlpoint.realmysqlpoint.enumerated.ProviderType;
+import mysqlpoint.realmysqlpoint.repository.JpaMemberRepository;
 import mysqlpoint.realmysqlpoint.repository.JpaRestaurantRepository;
-import mysqlpoint.realmysqlpoint.service.RestaurantService;
-import mysqlpoint.realmysqlpoint.util.DayInfo;
-import mysqlpoint.realmysqlpoint.util.Provision;
-import org.junit.jupiter.api.DisplayName;
+import mysqlpoint.realmysqlpoint.repository.JpaRestaurantStockRepository;
+import mysqlpoint.realmysqlpoint.repository.JpaItemRepository;
+import mysqlpoint.realmysqlpoint.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.swing.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -37,101 +34,152 @@ public class GetUserLocationRestaurantTest {
     private JpaRestaurantRepository repository;
 
     @Autowired
-    private RestaurantService solution;
+    private JpaMemberRepository memberRepository;
+
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private JpaItemRepository itemRepository;
 
-    public void updateAutoIncrementValue(String tableName, int newValue) {
-        String sql = String.format("ALTER TABLE %s AUTO_INCREMENT = %d", tableName, newValue);
-        jdbcTemplate.execute(sql);
+    @Autowired
+    private JpaRestaurantStockRepository restaurantStockRepository;
+
+
+    final GeometryFactory geometryFactory = new GeometryFactory();
+
+    private String shopName = "학식";
+
+    private final String email = "test2@example.com";
+    private final String provider = ProviderType.KAKAO.getProviderName();
+    private final String memberName = "test_2";
+    private final String nickname = "test_2";
+
+    private final String address = "서울시 강남구";
+    private final String role = MemberRole.MEMBER.getRole();
+    private final LocalDate certifyAt = LocalDate.now();
+    private final boolean agreedToServiceUse = true;
+    private final boolean agreedToServicePolicy = true;
+    private final boolean agreedToServicePolicyUse = true;
+    private final LocalDateTime memberCreatedAt = LocalDateTime.now();
+
+    double lat = 37.552201;
+    double lon = 126.845541;
+
+    private Map<String, Object> getMenuTest() {
+        Map<String, Object> frame = new LinkedHashMap<>();
+        frame.put("비빔밥", 8000);
+        frame.put("불고기", 12000);
+        return frame;
     }
+
+    private Map<String, Object> getTimeTest() {
+        Map<String, Object> allDayTime = new LinkedHashMap<>();
+
+        allDayTime.put(TimeOption.HOLIDAY.toString(), true);
+        allDayTime.put(TimeOption.ETC.toString(), "여름/겨울 방학 휴업");
+
+        TimeData timeData = TimeData.builder()
+                .businessStatus(true)
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(22, 0))
+                .breakBusinessStatus(true)
+                .breakStartTime(LocalTime.of(15, 0))
+                .breakEndTime(LocalTime.of(17, 0))
+                .build();
+
+        TimeData result = null;
+
+        for (DayInfo value : DayInfo.values()) {
+            allDayTime.put(value.toString(), timeData);
+            result = (TimeData) allDayTime.get(value);
+        }
+
+        return allDayTime;
+    }
+
+    private Map<String, Object> getProvisionTest() {
+        Map<String, Object> frame = new LinkedHashMap<>();
+
+        for (Provision value : Provision.values()) {
+            frame.put(value.toString(), true);
+        }
+        return frame;
+    }
+
 
 
     @Test
     @Commit
     public void main() {
-        //35.840526  128.700646
-        //35.8267887 128.7163574
-        //35.8404979 128.7547088
 
-        Location location = new Location( 37.557012 , 126.843543);
-
-
-        // JTS 라이브러리의 GeometryFactory를 사용하여 Point 객체 생성
-        GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new org.locationtech.jts.geom.Coordinate(location.getLongitude(), location.getLatitude()));
-
-        // 메뉴 객체 생성 및 초기화
-        Map<String, Object> menu = new HashMap<>();
-        menu.put("kimchi", Map.of("price", BigDecimal.valueOf(5)));
-        menu.put("bibimbap", Map.of("price", BigDecimal.valueOf(10)));
-
-        // 영업시간 객체 생성 및 초기화
-        Map<String, Object> time = new HashMap<>();
-        time.put(DayInfo.MONDAY.name(), Map.of("open", LocalTime.of(9, 0), "close", LocalTime.of(21, 0)));
-
-        // 편의시설 객체 생성 및 초기화
-        Map<String, Object> provision = new HashMap<>();
-        provision.put(Provision.WIFI.name(), true);
-        provision.put(Provision.PET.name(), true);
-
-        // Restaurant 인스턴스 생성
-        Restaurant restaurant = Restaurant.builder()
-                .category("Korean")
-                .name("화동순대국 우장산")
-                .address("화동순대국 공항대로 38길")
-                .location(point)
-                .contact(10323000001L)
-                .menu(menu)
-                .time(time)
-                .provision(provision)
+        Member build = Member.builder()
+                .email(email)
+                .provider(ProviderType.ofProvider(provider))
+                .name(memberName)
+                .nickname(nickname)
+                .role(MemberRole.ofRole(role))
+                .phone(1012345678L)
+                .certifyAt(certifyAt)
+                .agreedToServiceUse(agreedToServiceUse)
+                .agreedToServicePolicy(agreedToServicePolicy)
+                .agreedToServicePolicyUse(agreedToServicePolicyUse)
+                .createdAt(memberCreatedAt)
                 .build();
 
-        // Restaurant 인스턴스 출력 (예시를 위한 toString() 사용)
+        memberRepository.save(build);
+
+
+        Item item1 = Item.builder()
+                .type(ItemType.PROMOTION)
+                .name("item 3")
+                .price(BigDecimal.valueOf(20000))
+                .info("item 3 info")
+                .build();
+        Item item2 = Item.builder()
+                .type(ItemType.PROMOTION)
+                .name("item_4")
+                .price(BigDecimal.valueOf(20000))
+                .info("item_4_info")
+                .build();
+
+        itemRepository.save(item1);
+        itemRepository.save(item2);
+
+        Restaurant restaurant = Restaurant.builder()
+                .members(build)
+                .category("Korean")
+                .name(shopName)
+                .address(address)
+                .location(Restaurant.genPoint(lon, lat))
+                .contact(10323000001L)
+                .menu(getMenuTest())
+                .time(getTimeTest())
+                .provision(getProvisionTest())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+
         repository.save(restaurant);
+
+
+        RestaurantStock stock1 = RestaurantStock.builder()
+                .item(item1)
+                .restaurant(restaurant)
+                .quantity(100L) // 예시로 100을 설정했습니다. 필요한 수량에 맞게 조정하세요.
+                .build();
+
+        RestaurantStock stock2 = RestaurantStock.builder()
+                .item(item2)
+                .restaurant(restaurant)
+                .quantity(150L) // 예시로 150을 설정했습니다. 필요한 수량에 맞게 조정하세요.
+                .build();
+
+
+// RestaurantStock 인스턴스 저장
+        restaurantStockRepository.save(stock1);
+        restaurantStockRepository.save(stock2);
     }
 
-    @Test
-    @DisplayName("NativeQuery 사용")
-    public void point_find() {
-
-        double latitude = 35.8393357; //위도
-        double longitude = 128.7210818; //경도
-        double r = 1000;
-//
-//        final GeometryFactory geometryFactory = new GeometryFactory();
-//        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-//
-//        List<Restaurant> restaurants = repository.findAllWithinPoint(latitude , longitude , r);
-//
-//        for (Restaurant restaurant : restaurants) {
-//            log.info("결과값 = {}", restaurant);
-//        }
-
-    }
-
-    @Test
-    @DisplayName("스프링 JPA Query 사용")
-    public void point() {
-
-        repository.deleteById(22L);
-        double latitude = 35.8393357; //위도
-
-        double longitude = 128.7210818; //경도
-
-        double r = 1000;
-
-        final GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-//        List<Restaurant> restaurants = repository.findAllWithinPoints(point , r);
-//
-//        for (Restaurant restaurant : restaurants) {
-//            log.info("결과값 = {}", restaurant);
-//        }
 
 
 
-    }
 }

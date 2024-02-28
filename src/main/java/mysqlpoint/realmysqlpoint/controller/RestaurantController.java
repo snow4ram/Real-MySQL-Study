@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.request.RestaurantSearchLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
-import mysqlpoint.realmysqlpoint.repository.custom.RestaurantRepositoryCustomImpl;
+import mysqlpoint.realmysqlpoint.controller.response.RestaurantNearbyLocationResponse;
 import mysqlpoint.realmysqlpoint.service.RestaurantService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,8 +26,8 @@ public class RestaurantController {
 
 
     @GetMapping("/restaurant")
-    public ResponseEntity<List<RestaurantLocationResponse>> nearby(UserLocationRequest request) {
-        List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(request);
+    public ResponseEntity<List<RestaurantNearbyLocationResponse>> nearby(@RequestBody UserLocationRequest request) {
+        List<RestaurantNearbyLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(request);
         return ResponseEntity.ok().body(restaurantSearch);
     }
 
@@ -64,16 +62,7 @@ public class RestaurantController {
         double lat = 37.552201;
         double lon = 126.845541;
 
-        Page<RestaurantLocationResponse> restaurantLocationResponses = restaurants.getSearch(
-                keyword, swLatitude, swLongitude, neLatitude, neLongitude, lat , lon,  page  ,  pageSize);
 
-        model.addAttribute("restaurants", restaurantLocationResponses);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("currentPage", page); // 사용자에게 표시될 현재 페이지 번호
-
-        for (RestaurantLocationResponse restaurantLocationRespons : restaurantLocationResponses) {
-            log.info("찾은 레스토랑 정보 = {}" , restaurantLocationRespons);
-        }
 
         return "/html/search";
     }

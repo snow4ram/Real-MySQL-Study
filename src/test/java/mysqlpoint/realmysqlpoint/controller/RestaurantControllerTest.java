@@ -73,53 +73,10 @@ class RestaurantControllerTest {
 
         LocalTime time = LocalTime.now();
 
-        LocalTime userTime = LocalTime.of(22, 01);
-
-
-        for (RestaurantLocationResponse search : restaurantSearch) {
-
-            DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
-            log.info("오늘 일 = {}" , dayOfWeek);
-
-            Object dayTimeData = search.getTime().get("FRIDAY");
-
-            if (dayTimeData instanceof Map) {
-                StringBuilder stringBuilder = new StringBuilder();
-
-                Map<String, List<Integer>> todayBusinessHours = (Map<String, List<Integer>>) dayTimeData;
-
-                List<Integer> endTime = todayBusinessHours.get("endTime");
-
-                List<Integer> breakStartTime = todayBusinessHours.get("breakStartTime");
-
-                List<Integer> breakEndTime = todayBusinessHours.get("breakEndTime");
-
-                LocalTime todayBreakStartTime = LocalTime.of(breakStartTime.get(0), breakStartTime.get(1));
-
-                LocalTime todayBreakEndTime = LocalTime.of(breakEndTime.get(0), breakEndTime.get(1));
-
-                LocalTime todayClose = LocalTime.of(endTime.get(0), endTime.get(1));
-
-                if (userTime.isBefore(todayClose) && !(userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime))) {
-                    boolean before = time.isBefore(todayClose);
-                    stringBuilder.append("영업중");
-                }
-
-                if (userTime.isAfter(todayClose) && !(userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime))) {
-                    boolean after = time.isAfter(todayClose);
-                    stringBuilder.append("영업 종료");
-                }
-
-                if (userTime.isAfter(todayBreakStartTime) && userTime.isBefore(todayBreakEndTime)) {
-                    stringBuilder.append("브레이크 타임");
-                }
-
-                search.setBusinessStatus(stringBuilder.toString());
-            }
-        }
+        LocalTime userTime = LocalTime.of(16, 30);
 
         for (RestaurantLocationResponse search : restaurantSearch) {
-            log.info("현제 상태 = {}" ,search);
+            log.info("가게정보 = {}" , search);
         }
 
     }

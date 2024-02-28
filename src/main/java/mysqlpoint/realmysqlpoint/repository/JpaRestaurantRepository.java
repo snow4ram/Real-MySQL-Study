@@ -1,11 +1,9 @@
 package mysqlpoint.realmysqlpoint.repository;
 
 
-import jakarta.persistence.EntityManager;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
 
 
-import mysqlpoint.realmysqlpoint.repository.custom.RestaurantRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 
-public interface JpaRestaurantRepository extends JpaRepository<Restaurant, Long> , RestaurantRepositoryCustom {
+public interface JpaRestaurantRepository extends JpaRepository<Restaurant, Long>  {
 
     @Query(value = "SELECT * FROM Restaurant r WHERE ST_Contains(" +
             "Polygon(LineString(" +
@@ -31,56 +29,24 @@ public interface JpaRestaurantRepository extends JpaRepository<Restaurant, Long>
             @Param("swLongitude") double swLongitude);
 
 
-//    @Query(nativeQuery = true, value = """
-//                SELECT R.*, ST_DISTANCE_SPHERE(POINT(:longitude, :latitude), R.location) AS distance
-//                FROM (
-//                    SELECT r.*
-//                    FROM Restaurant r
-//                    WHERE MBRContains(
-//                        LineString(
-//                            Point(
-//                                :longitude - (:radius / 111.32),
-//                                :latitude - (:radius / (111.32 * COS(RADIANS(:latitude))))
-//                            ),
-//                            Point(
-//                                :longitude + (:radius / 111.32),
-//                                :latitude + (:radius / (111.32 * COS(RADIANS(:latitude))))
-//                            )
-//                        ), r.location
-//                    )
-//                ) AS r
-//                WHERE ST_DISTANCE_SPHERE(POINT(:longitude, :latitude), R.location) <= :radius
-//                ORDER BY distance ASC;
-//            """)
-//    List<Restaurant> findAllWithinPoint(
-//            @Param("latitude") double latitude,
-//            @Param("longitude") double longitude,
-//            @Param("radius") double radius);
-
-    @Query(nativeQuery = true, value = """
-                SELECT r.*, ST_DISTANCE_SPHERE(POINT(:longitude, :latitude), r.location) AS distance
-                FROM (
-                    SELECT *
-                    FROM Restaurant r 
-                    WHERE ST_Contains(
-                                    Polygon(LineString(
-                                    Point(:swLongitude, :neLatitude),  
-                                    Point(:neLongitude, :neLatitude),  
-                                    Point(:neLongitude, :swLatitude),  
-                                    Point(:swLongitude, :swLatitude),  
-                                    Point(:swLongitude, :neLatitude))), r.location), 
-                                    r.location
-                    )
-                ) AS r
-                ORDER BY distance ASC;
-            """)
-    List<Restaurant> findAllWithinPoint(
-            @Param("latitude") double latitude,
-            @Param("longitude") double longitude,
+    @Query(value =
+            "SELECT r.*, i.*" +
+            "FROM restaurant_stock rs " +
+            "JOIN restaurant r ON r.id = rs.restaurant_id " +
+            "JOIN item i ON i.id = rs.item_id " +
+                "WHERE ST_Contains(" +
+                "Polygon(LineString(" +
+                "Point(:swLongitude, :neLatitude), " +
+                "Point(:neLongitude, :neLatitude), " +
+                "Point(:neLongitude, :swLatitude), " +
+                "Point(:swLongitude, :swLatitude), " +
+                "Point(:swLongitude, :neLatitude))), r.location) ", nativeQuery = true)
+    List<Object[]> findAllItemsAndQuantitiesWithinPolygonForRestaurant(
             @Param("neLatitude") double neLatitude,
             @Param("neLongitude") double neLongitude,
             @Param("swLatitude") double swLatitude,
             @Param("swLongitude") double swLongitude);
+
 
 }
 

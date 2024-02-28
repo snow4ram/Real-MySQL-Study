@@ -17,7 +17,7 @@ public class AppConfig {
     private EntityManager manager;
 
     @Bean
-    public JPQLQueryFactory jpqlQueryFactory() {
+    public JPAQueryFactory jpqlQueryFactory() {
         return new JPAQueryFactory(manager);
     }
 }
