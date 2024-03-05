@@ -13,7 +13,6 @@ import java.util.List;
 @Entity
 @Getter
 @SuperBuilder(toBuilder = true)
-@ToString
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "item")
@@ -36,8 +35,8 @@ public class Item extends BaseEntity {
     private String info;
 
     @OneToMany(mappedBy = "item")
+    @Builder.Default
     private List<RestaurantStock> restaurantStocks = new ArrayList<>();
-
 
 
 }

@@ -5,12 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
+import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationDTO;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
-import mysqlpoint.realmysqlpoint.controller.response.RestaurantNearbyLocationResponse;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
-import mysqlpoint.realmysqlpoint.repository.JpaRestaurantRepository;
 
-import mysqlpoint.realmysqlpoint.repository.RestaurantPolygonRepository;
+import mysqlpoint.realmysqlpoint.repository.RestaurantRepository;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -19,42 +20,42 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RestaurantService {
 
-    private final JpaRestaurantRepository restaurantRepository;
 
-    private final RestaurantPolygonRepository polygonRepository;
+    private final RestaurantRepository polygonRepository;
 
 
-    public List<RestaurantNearbyLocationResponse> getRestaurantSearch(UserLocationRequest boundsRequest) {
+    public List<RestaurantLocationResponse> getRestaurantSearch(UserLocationRequest boundsRequest) {
 
-        double lat = 37.551779;
-        double lon = 126.843123;
+        List<Restaurant> restaurant = polygonRepository.getRestaurant(boundsRequest.getNeLatitude(), boundsRequest.getNeLongitude(), boundsRequest.getSwLatitude(), boundsRequest.getSwLongitude());
 
-        List<RestaurantNearbyLocationResponse> allItemsAndQuantitiesWithinPolygonForRestaurant = polygonRepository.findAllItemsAndQuantitiesWithinPolygonForRestaurant(boundsRequest.getNeLatitude(), boundsRequest.getNeLongitude(), boundsRequest.getSwLatitude(), boundsRequest.getSwLongitude());
+        List<RestaurantLocationResponse> restaurantLocationResponses = restaurant.stream().map(RestaurantLocationResponse::of).collect(Collectors.toList());
 
-        //List<RestaurantLocationResponse> collect = allWithinPolygon.stream().map(RestaurantLocationResponse::of).collect(Collectors.toList());
+        checkRestaurantStatus(restaurantLocationResponses);
 
-        checkRestaurantStatus(allItemsAndQuantitiesWithinPolygonForRestaurant);
-//
-        return allItemsAndQuantitiesWithinPolygonForRestaurant;
+        List<Long> itemId = restaurantLocationResponses
+                .stream()
+                .flatMap(restaurants -> restaurants.getStockResponses().stream().map(stock -> stock.getItem().getId()))
+                .toList();
+        
+        return restaurantLocationResponses;
     }
 
-
-
-    public void checkRestaurantStatus(List<RestaurantNearbyLocationResponse> restaurantSearch) {
+    public void checkRestaurantStatus(List<RestaurantLocationResponse> restaurantSearch) {
 
         LocalTime userTime = LocalTime.now();
 
-        for (RestaurantNearbyLocationResponse search : restaurantSearch) {
-
-            DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+        for (RestaurantLocationResponse search : restaurantSearch) {
 
             StringBuilder stringBuilder = new StringBuilder();
+
+            DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
 
             Object dayTimeData = search.getTime().get(dayOfWeek.toString());
 
@@ -82,9 +83,8 @@ public class RestaurantService {
                     stringBuilder.append("영업 종료");
                 }
 
-                search.setBusinessStatus(stringBuilder.toString());
+                search.setRestaurantStatus(stringBuilder.toString());
             }
-
         }
     }
 }

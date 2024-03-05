@@ -29,30 +29,25 @@ import java.util.Map;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 public class GetUserLocationRestaurantTest {
-
     @Autowired
     private JpaRestaurantRepository repository;
-
     @Autowired
     private JpaMemberRepository memberRepository;
-
-
     @Autowired
     private JpaItemRepository itemRepository;
-
     @Autowired
     private JpaRestaurantStockRepository restaurantStockRepository;
-
-
     final GeometryFactory geometryFactory = new GeometryFactory();
 
     private String shopName = "학식";
-
-    private final String email = "test2@example.com";
+    private final String email = "test4@example.com";
     private final String provider = ProviderType.KAKAO.getProviderName();
-    private final String memberName = "test_2";
-    private final String nickname = "test_2";
-
+    private final String memberName = "test_4";
+    private final String nickname = "test_4";
+    private final String itemName1 = " item_name_test_7";
+    private final String itemInfo1 = " item_info_test_7";
+    private final String itemName2 = " item_name_test_8";
+    private final String itemInfo2 = " item_info_test_8";
     private final String address = "서울시 강남구";
     private final String role = MemberRole.MEMBER.getRole();
     private final LocalDate certifyAt = LocalDate.now();
@@ -60,9 +55,86 @@ public class GetUserLocationRestaurantTest {
     private final boolean agreedToServicePolicy = true;
     private final boolean agreedToServicePolicyUse = true;
     private final LocalDateTime memberCreatedAt = LocalDateTime.now();
+    double lat = 37.551597;
+    double lon = 126.846507;
+    @Test
+    @Commit
+    public void main() {
 
-    double lat = 37.552201;
-    double lon = 126.845541;
+        Member build = Member.builder()
+                .email(email)
+                .provider(ProviderType.ofProvider(provider))
+                .name(memberName)
+                .nickname(nickname)
+                .role(MemberRole.ofRole(role))
+                .phone(1012345678L)
+                .certifyAt(certifyAt)
+                .agreedToServiceUse(agreedToServiceUse)
+                .agreedToServicePolicy(agreedToServicePolicy)
+                .agreedToServicePolicyUse(agreedToServicePolicyUse)
+                .createdAt(memberCreatedAt)
+                .build();
+
+        memberRepository.save(build);
+
+
+        Item item1 = Item.builder()
+                .type(ItemType.PROMOTION)
+                .name(itemName1)
+                .price(BigDecimal.valueOf(20000))
+                .info(itemInfo1)
+                .build();
+        Item item2 = Item.builder()
+                .type(ItemType.PROMOTION)
+                .name(itemName2)
+                .price(BigDecimal.valueOf(20000))
+                .info(itemInfo2)
+                .build();
+
+        itemRepository.save(item1);
+        itemRepository.save(item2);
+
+        Restaurant restaurant = Restaurant.builder()
+                .members(build)
+                .category("Korean")
+                .name(shopName)
+                .address(address)
+                .location(Restaurant.genPoint(lon, lat))
+                .contact(10323000001L)
+                .menu(getMenuTest())
+                .time(getTimeTest())
+                .provision(getProvisionTest())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+
+        repository.save(restaurant);
+
+
+        RestaurantStock stock1 = RestaurantStock.builder()
+                .item(item1)
+                .restaurant(restaurant)
+                .quantity(100L) // 예시로 100을 설정했습니다. 필요한 수량에 맞게 조정하세요.
+                .build();
+
+        RestaurantStock stock2 = RestaurantStock.builder()
+                .item(item2)
+                .restaurant(restaurant)
+                .quantity(150L) // 예시로 150을 설정했습니다. 필요한 수량에 맞게 조정하세요.
+                .build();
+
+
+        stock1.addItem(item1);
+        stock1.addRestaurant(restaurant);
+
+        stock2.addItem(item2);
+        stock2.addRestaurant(restaurant);
+
+// RestaurantStock 인스턴스 저장
+        restaurantStockRepository.save(stock1);
+        restaurantStockRepository.save(stock2);
+    }
+
 
     private Map<String, Object> getMenuTest() {
         Map<String, Object> frame = new LinkedHashMap<>();
@@ -103,80 +175,6 @@ public class GetUserLocationRestaurantTest {
             frame.put(value.toString(), true);
         }
         return frame;
-    }
-
-
-
-    @Test
-    @Commit
-    public void main() {
-
-        Member build = Member.builder()
-                .email(email)
-                .provider(ProviderType.ofProvider(provider))
-                .name(memberName)
-                .nickname(nickname)
-                .role(MemberRole.ofRole(role))
-                .phone(1012345678L)
-                .certifyAt(certifyAt)
-                .agreedToServiceUse(agreedToServiceUse)
-                .agreedToServicePolicy(agreedToServicePolicy)
-                .agreedToServicePolicyUse(agreedToServicePolicyUse)
-                .createdAt(memberCreatedAt)
-                .build();
-
-        memberRepository.save(build);
-
-
-        Item item1 = Item.builder()
-                .type(ItemType.PROMOTION)
-                .name("item 3")
-                .price(BigDecimal.valueOf(20000))
-                .info("item 3 info")
-                .build();
-        Item item2 = Item.builder()
-                .type(ItemType.PROMOTION)
-                .name("item_4")
-                .price(BigDecimal.valueOf(20000))
-                .info("item_4_info")
-                .build();
-
-        itemRepository.save(item1);
-        itemRepository.save(item2);
-
-        Restaurant restaurant = Restaurant.builder()
-                .members(build)
-                .category("Korean")
-                .name(shopName)
-                .address(address)
-                .location(Restaurant.genPoint(lon, lat))
-                .contact(10323000001L)
-                .menu(getMenuTest())
-                .time(getTimeTest())
-                .provision(getProvisionTest())
-                .createdAt(LocalDateTime.now())
-                .build();
-
-
-        repository.save(restaurant);
-
-
-        RestaurantStock stock1 = RestaurantStock.builder()
-                .item(item1)
-                .restaurant(restaurant)
-                .quantity(100L) // 예시로 100을 설정했습니다. 필요한 수량에 맞게 조정하세요.
-                .build();
-
-        RestaurantStock stock2 = RestaurantStock.builder()
-                .item(item2)
-                .restaurant(restaurant)
-                .quantity(150L) // 예시로 150을 설정했습니다. 필요한 수량에 맞게 조정하세요.
-                .build();
-
-
-// RestaurantStock 인스턴스 저장
-        restaurantStockRepository.save(stock1);
-        restaurantStockRepository.save(stock2);
     }
 
 

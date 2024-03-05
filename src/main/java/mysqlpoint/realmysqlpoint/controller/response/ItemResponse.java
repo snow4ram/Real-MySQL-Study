@@ -23,7 +23,6 @@ public class ItemResponse {
 
     private String info;
 
-
     public static ItemResponse of(Item item) {
         return ItemResponse.builder()
                 .id(item.getId())

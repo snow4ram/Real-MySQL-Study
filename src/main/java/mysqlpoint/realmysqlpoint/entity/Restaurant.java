@@ -45,7 +45,6 @@ public class Restaurant extends BaseEntity{
     @Comment("가게 연락처")
     private Long contact;
 
-
     @Type(JsonType.class)
     @Comment("메뉴")
     @Column(name = "menu", columnDefinition ="json")
@@ -62,8 +61,8 @@ public class Restaurant extends BaseEntity{
     private Map<String , Object> provision = new HashMap<>();
 
     @OneToMany(mappedBy = "restaurant")
+    @Builder.Default
     private List<RestaurantStock> restaurantStocks = new ArrayList<>();
-
 
     public static Point genPoint(Double longitude, Double latitude) {
         GeometryFactory geometryFactory = new GeometryFactory();

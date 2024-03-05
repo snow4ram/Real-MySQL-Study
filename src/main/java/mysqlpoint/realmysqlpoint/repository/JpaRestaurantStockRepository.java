@@ -10,7 +10,6 @@ import java.util.List;
 
 
 public interface JpaRestaurantStockRepository extends JpaRepository<RestaurantStock, Long> {
-    @Query("SELECT rs FROM RestaurantStock rs JOIN FETCH rs.item WHERE rs.restaurant.id = :restaurantId")
-    List<RestaurantStock> findByRestaurantIdWithItems(@Param("restaurantId") Long restaurantId);
+
 }
 

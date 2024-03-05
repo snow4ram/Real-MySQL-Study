@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 class RestaurantRepositoryCustomImplTest {
 
     @InjectMocks
-    private RestaurantRepositoryImpl restaurantRepositoryCustom;
+    private RestaurantRepository restaurantRepository;
     @Mock
     private RestaurantService restaurantService;
     @Mock
@@ -128,23 +128,9 @@ class RestaurantRepositoryCustomImplTest {
     private final Map<String, Object> provision = getProvisionTest();
     private final LocalDateTime createdAt = LocalDateTime.now();
 
-    @BeforeEach
-    void setUp() {
-        Query mockedQuery = mock(Query.class);
-
-        when(mockedQuery.getResultList()).thenReturn(Collections.emptyList());
-
-        when(entityManager.createNativeQuery(anyString(), eq(Restaurant.class))).thenReturn(mockedQuery);
-
-        when(mockedQuery.setParameter(anyString(), any())).thenReturn(mockedQuery);
-    }
-
     @Test
     public void getSearchRestaurant() {
 
-        PageRequest pageRequest = PageRequest.of(page, size);
-
-        Page<RestaurantLocationResponse> restaurants = this.getRestaurants();
 
         Restaurant restaurantData = getRestaurantData();
 
@@ -154,23 +140,16 @@ class RestaurantRepositoryCustomImplTest {
 
     }
 
-    private Page<RestaurantLocationResponse> getRestaurants() {
-        List<RestaurantLocationResponse> list = List.of(RestaurantLocationResponse.of(this.getRestaurantData()));
-        Pageable pageable = PageRequest.of(page, size);
-        return new PageImpl<RestaurantLocationResponse>(list, pageable, list.size());
-    }
-
-//    private List<Restaurant> getRestaurants() {
-//        return List.of(this.getRestaurantData());
+//    private Page<RestaurantLocationResponse> getRestaurants() {
+//        List<RestaurantLocationResponse> list = List.of(RestaurantLocationResponse.of(this.getRestaurantData()));
 //        Pageable pageable = PageRequest.of(page, size);
-//        return new PageImpl<Restaurant>(list, pageable, list.size());
+//        return new PageImpl<RestaurantLocationResponse>(list, pageable, list.size());
 //    }
 
 
 
     private Restaurant getRestaurantData() {
         Member member = getMemberData();
-
         return Restaurant.builder()
                 .id(id)
                 .members(member)
@@ -185,9 +164,6 @@ class RestaurantRepositoryCustomImplTest {
                 .createdAt(createdAt)
                 .build();
     }
-
-
-
 
 
     private Member getMemberData() {

@@ -2,8 +2,8 @@ package mysqlpoint.realmysqlpoint.repository;
 
 import lombok.extern.slf4j.Slf4j;
 
+import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationDTO;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
-import mysqlpoint.realmysqlpoint.controller.response.RestaurantNearbyLocationResponse;
 import mysqlpoint.realmysqlpoint.entity.Item;
 import mysqlpoint.realmysqlpoint.entity.Member;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
@@ -27,6 +27,7 @@ import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -46,47 +47,28 @@ class RestaurantLocationSearchRepositoryImplTest {
     @Autowired
     private JpaRestaurantStockRepository restaurantStockRepository;
 
-    @Autowired
-    private RestaurantRepositoryImpl restaurantRepositoryImpl;
 
     @Autowired
-    private RestaurantPolygonRepository repository;
+    private RestaurantRepository repository;
 
     double neLatitude = 37.5567635;
     double neLongitude = 126.8529193;
     double swLatitude = 37.5482577;
     double swLongitude = 126.8421905;
 
-    double lat = 37.552201;
-    double lon = 126.845541;
 
 
     @Test
     public void search() {
 
-//        List<RestaurantLocationResponse> allItemsAndQuantitiesWithinPolygonForRestaurant = restaurantRepositoryImpl
-//                .findAllItemsAndQuantitiesWithinPolygonForRestaurant(neLatitude, neLongitude, swLatitude, swLongitude, lat, lon);
+//        List<Restaurant> collect = repository.getRestaurant(neLatitude, neLongitude, swLatitude, swLongitude);
 //
-//        for (RestaurantLocationResponse restaurantLocationResponse : allItemsAndQuantitiesWithinPolygonForRestaurant) {
-//            log.info("조회 결과 = {}" , restaurantLocationResponse);
+//        for (Restaurant restaurant : collect) {
+//            log.info("레스토랑 정보 ={} " , restaurant);
 //        }
 
-        List<RestaurantNearbyLocationResponse> allItemsAndQuantitiesWithinPolygonForRestaurant = repository.findAllItemsAndQuantitiesWithinPolygonForRestaurant(neLatitude, neLongitude, swLatitude, swLongitude);
-        for (RestaurantNearbyLocationResponse restaurant : allItemsAndQuantitiesWithinPolygonForRestaurant) {
-            log.info("레스토랑 정보 ={} " , restaurant);
-        }
-    }
-
-
-    @Test
-    public void init() {
-
-        restaurantRepository.findAllItemsAndQuantitiesWithinPolygonForRestaurant(neLatitude, neLongitude, swLatitude, swLongitude);
-
-
 
     }
-
     final GeometryFactory geometryFactory = new GeometryFactory();
 
     private Map<String, Object> getMenuTest() {
