@@ -2,21 +2,26 @@ package mysqlpoint.realmysqlpoint.controller.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @NoArgsConstructor
 public class UserLocationRequest {
-    private double neLatitude;
-    private double neLongitude;
-    private double swLatitude;
-    private double swLongitude;
 
+    private double userLocationLatitude;
 
-    public UserLocationRequest(double neLatitude, double neLongitude, double swLatitude, double swLongitude) {
-        this.neLatitude = neLatitude;
-        this.neLongitude = neLongitude;
-        this.swLatitude = swLatitude;
-        this.swLongitude = swLongitude;
+    private double userLocationLongitude;
+
+    private String keyword;
+
+    private int page;
+
+    private int size;
+
+    public UserLocationRequest(double userLocationLatitude, double userLocationLongitude, String keyword, int page, int size) {
+        this.userLocationLatitude = userLocationLatitude;
+        this.userLocationLongitude = userLocationLongitude;
+        this.keyword = keyword;
+        this.page = page;
+        this.size = size;
     }
 }

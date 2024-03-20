@@ -1,43 +1,48 @@
 package mysqlpoint.realmysqlpoint.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import mysqlpoint.realmysqlpoint.common.response.PageResponse;
+import mysqlpoint.realmysqlpoint.controller.request.RestaurantLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.request.UserLocationRequest;
-import mysqlpoint.realmysqlpoint.controller.request.RestaurantSearchLocationRequest;
 import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationResponse;
-import mysqlpoint.realmysqlpoint.entity.Restaurant;
+import mysqlpoint.realmysqlpoint.controller.response.RestaurantNearbyResponse;
 import mysqlpoint.realmysqlpoint.service.RestaurantService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Slf4j
-@Controller
-@RequestMapping("/v1/api")
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/v1/restaurants")
+@Tag(name = "v1-restaurants-controller", description = "레스토랑 관련 API")
 public class RestaurantController {
 
     private final RestaurantService restaurants;
 
-    @GetMapping("/restaurant")
-    public ResponseEntity<List<RestaurantLocationResponse>> nearby(@RequestBody UserLocationRequest request) {
+    @GetMapping
+    public ResponseEntity<List<RestaurantLocationResponse>> nearby(@RequestBody RestaurantLocationRequest request) {
 
-        List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurantSearch(request);
+        List<RestaurantLocationResponse> restaurantSearch = restaurants.getRestaurants(request.getNeLatitude() , request.getNeLongitude() , request.getSwLatitude() ,request.getSwLongitude());
 
         return ResponseEntity.ok().body(restaurantSearch);
     }
 
-    @ResponseBody
-    @PostMapping("/restaurant_list_view")
-    public RestaurantSearchLocationRequest getReceiveListViewByZoomLevel(@RequestBody RestaurantSearchLocationRequest userLocationRequest) {
-
-        log.info("현재 사용자의 위치의 목록 보기 = {} ", userLocationRequest.toString());
-
-
-        return userLocationRequest;
+    @GetMapping("/nearby")
+    public ResponseEntity<PageResponse<RestaurantNearbyResponse>> getRestaurantsWithinNearby(
+            @RequestBody UserLocationRequest locationRequest
+    ) {
+        PageResponse<RestaurantNearbyResponse> dev = PageResponse.of(restaurants.get(
+                locationRequest.getUserLocationLatitude(),
+                locationRequest.getUserLocationLongitude(),
+                locationRequest.getKeyword(),
+                locationRequest.getPage(),
+                locationRequest.getSize()));
+        return ResponseEntity.ok().body(dev);
     }
 
 }

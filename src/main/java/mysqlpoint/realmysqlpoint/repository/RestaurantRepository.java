@@ -1,52 +1,52 @@
 package mysqlpoint.realmysqlpoint.repository;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import mysqlpoint.realmysqlpoint.controller.response.RestaurantLocationDTO;
+
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 
 import java.util.List;
 
-import static mysqlpoint.realmysqlpoint.entity.QItem.*;
-import static mysqlpoint.realmysqlpoint.entity.QRestaurant.*;
-import static mysqlpoint.realmysqlpoint.entity.QRestaurantStock.*;
 
-@Slf4j
-@Repository
-@RequiredArgsConstructor
-public class RestaurantRepository {
+public interface RestaurantRepository extends JpaRepository<Restaurant, Long> ,RestaurantRepositoryCustom{
 
-    private final JPAQueryFactory query;
+    @Query(value = "SELECT * FROM Restaurant r WHERE ST_Contains(" +
+            "Polygon(LineString(" +
+            "Point(:swLongitude, :neLatitude), " + // 북서(NW) 꼭짓점
+            "Point(:neLongitude, :neLatitude), " + // 북동(NE) 꼭짓점
+            "Point(:neLongitude, :swLatitude), " + // 남동(SE) 꼭짓점
+            "Point(:swLongitude, :swLatitude), " + // 남서(SW) 꼭짓점
+            "Point(:swLongitude, :neLatitude))), r.location)", // 폴리곤을 닫기 위해 북서(NW) 꼭짓점 반복
+            nativeQuery = true)
+    List<Restaurant> findAllWithinPolygon(
+            @Param("neLatitude") double neLatitude,
+            @Param("neLongitude") double neLongitude,
+            @Param("swLatitude") double swLatitude,
+            @Param("swLongitude") double swLongitude);
 
-    @Transactional(readOnly = true)
-    public List<Restaurant> getRestaurant(
-            double neLatitude, double neLongitude, double swLatitude, double swLongitude) {
 
-        String polygon = String.format("POLYGON((%f %f, %f %f, %f %f, %f %f, %f %f))",
-                swLongitude, neLatitude,
-                neLongitude, neLatitude,
-                neLongitude, swLatitude,
-                swLongitude, swLatitude,
-                swLongitude, neLatitude);
-
-        BooleanExpression inPolygon = Expressions.booleanTemplate(
-                "ST_Contains(ST_PolygonFromText({0}), {1})", polygon, restaurant.location);
-        BooleanExpression isNotDeleted = restaurant.deletedAt.isNull();
-
-        return query
-                .select(restaurant)
-                .from(restaurant)
-                .join(restaurant.restaurantStocks, restaurantStock).fetchJoin()
-                .join(restaurantStock.item, item).fetchJoin()
-                .where(inPolygon.and(isNotDeleted))
-                .fetch();
-    }
+    @Query(value =
+            "SELECT r.*, i.*" +
+            "FROM restaurant_stock rs " +
+            "JOIN restaurant r ON r.id = rs.restaurant_id " +
+            "JOIN item i ON i.id = rs.item_id " +
+                "WHERE ST_Contains(" +
+                "Polygon(LineString(" +
+                "Point(:swLongitude, :neLatitude), " +
+                "Point(:neLongitude, :neLatitude), " +
+                "Point(:neLongitude, :swLatitude), " +
+                "Point(:swLongitude, :swLatitude), " +
+                "Point(:swLongitude, :neLatitude))), r.location) ", nativeQuery = true)
+    List<Object[]> findAllItemsAndQuantitiesWithinPolygonForRestaurant(
+            @Param("neLatitude") double neLatitude,
+            @Param("neLongitude") double neLongitude,
+            @Param("swLatitude") double swLatitude,
+            @Param("swLongitude") double swLongitude);
 
 
 }
+

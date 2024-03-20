@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RestaurantLocationRequest {
 
-    private String restaurantName;
+    private double neLatitude;
+    private double neLongitude;
+    private double swLatitude;
+    private double swLongitude;
 
-    private Double latitude;
 
-    private Double longitude;
-
-    @Builder
-    public RestaurantLocationRequest(String message, double latitude, double longitude) {
-        this.restaurantName = message;
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public RestaurantLocationRequest(double neLatitude, double neLongitude, double swLatitude, double swLongitude) {
+        this.neLatitude = neLatitude;
+        this.neLongitude = neLongitude;
+        this.swLatitude = swLatitude;
+        this.swLongitude = swLongitude;
     }
 }

@@ -5,17 +5,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import mysqlpoint.realmysqlpoint.entity.Restaurant;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 @Getter
-@ToString
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Schema(description = "전체 레스토랑 조회 항목")
 public class RestaurantLocationResponse {
 
     @Schema(description = "레스토랑 고유아이디")
@@ -33,11 +33,11 @@ public class RestaurantLocationResponse {
     @Schema(description = "매장 주소")
     private String address;
 
-//    @Schema(description = "매장 위치(위도 , 경도)")
-//    private Point location;
-    private Double lon;
+    @Schema(description = "매장 위치(위도)")
+    private Double latitude;
 
-    private Double lat;
+    @Schema(description = "매장 위치(경도)")
+    private Double longitude;
 
     @Schema(description = "매장 연락처")
     private Long contact;
@@ -51,36 +51,37 @@ public class RestaurantLocationResponse {
     @Schema(description = "편의시설 목록")
     private Map<String, Object> provision;
 
-    private List<RestaurantStockResponse> stockResponses;
+    @Schema(description = "레스토랑에 등록된 정통주에 대한 정보")
+    private List<ProductResponse> productResponses;
 
-    @Schema(description = "레스토랑 영업여부")
-    private String status;
+    @Schema(description = "레스토랑 영업 상태 여부 정보")
+    private String businessStatus;
 
-    public void setRestaurantStatus(String string) {
-        this.status = string;
-
+    public void setRestaurantStatus(String businessStatus) {
+        this.businessStatus = businessStatus;
     }
 
     public static RestaurantLocationResponse of(Restaurant restaurant) {
-        List<RestaurantStockResponse> collect = restaurant
+        List<ProductResponse> products = restaurant
                 .getRestaurantStocks()
                 .stream()
-                .map(RestaurantStockResponse::of)
+                .map(stock -> ProductResponse.of(stock.getProduct(), stock.getQuantity()))
                 .collect(Collectors.toList());
 
         return RestaurantLocationResponse.builder()
                 .id(restaurant.getId())
-                .memberId(restaurant.getId())
+                .memberId(restaurant.getMembers().getId())
                 .category(restaurant.getCategory())
                 .name(restaurant.getName())
                 .address(restaurant.getAddress())
-                .lon(restaurant.getLocation().getY())
-                .lat(restaurant.getLocation().getX())
+                .latitude(restaurant.getLocation().getY())
+                .longitude(restaurant.getLocation().getX())
                 .contact(restaurant.getContact())
                 .menu(restaurant.getMenu())
                 .time(restaurant.getTime())
-                .stockResponses(collect)
+                .provision(restaurant.getProvision())
+                .productResponses(products)
                 .build();
-    }
 
+    }
 }
