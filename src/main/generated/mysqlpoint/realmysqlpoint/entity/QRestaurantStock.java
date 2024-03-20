@@ -22,7 +22,7 @@ public class QRestaurantStock extends EntityPathBase<RestaurantStock> {
 
     public static final QRestaurantStock restaurantStock = new QRestaurantStock("restaurantStock");
 
-    public final QBaseEntity _super = new QBaseEntity(this);
+    public final mysqlpoint.realmysqlpoint.util.QBaseEntity _super = new mysqlpoint.realmysqlpoint.util.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -33,7 +33,7 @@ public class QRestaurantStock extends EntityPathBase<RestaurantStock> {
     //inherited
     public final NumberPath<Long> id = _super.id;
 
-    public final QItem item;
+    public final QProduct product;
 
     public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
 
@@ -60,7 +60,7 @@ public class QRestaurantStock extends EntityPathBase<RestaurantStock> {
 
     public QRestaurantStock(Class<? extends RestaurantStock> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.item = inits.isInitialized("item") ? new QItem(forProperty("item")) : null;
+        this.product = inits.isInitialized("product") ? new QProduct(forProperty("product")) : null;
         this.restaurant = inits.isInitialized("restaurant") ? new QRestaurant(forProperty("restaurant"), inits.get("restaurant")) : null;
     }
 

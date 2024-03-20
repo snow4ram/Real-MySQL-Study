@@ -1,4 +1,4 @@
-package mysqlpoint.realmysqlpoint.util;
+package mysqlpoint.realmysqlpoint.common.enumerated;
 
 public enum DayInfo {
     MONDAY,

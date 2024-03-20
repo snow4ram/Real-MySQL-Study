@@ -14,7 +14,6 @@ public class TimeData {
     
     private LocalTime startTime; // 영업 시작 시간
 
-
     private LocalTime endTime; // 영업 종료 시간
 
     private boolean breakBusinessStatus; // 영업 여부

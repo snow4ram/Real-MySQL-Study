@@ -19,7 +19,7 @@ public class QMember extends EntityPathBase<Member> {
 
     public static final QMember member = new QMember("member1");
 
-    public final QBaseEntity _super = new QBaseEntity(this);
+    public final mysqlpoint.realmysqlpoint.util.QBaseEntity _super = new mysqlpoint.realmysqlpoint.util.QBaseEntity(this);
 
     public final BooleanPath agreedToServicePolicy = createBoolean("agreedToServicePolicy");
 
@@ -45,10 +45,6 @@ public class QMember extends EntityPathBase<Member> {
     public final StringPath nickname = createString("nickname");
 
     public final NumberPath<Long> phone = createNumber("phone", Long.class);
-
-    public final EnumPath<mysqlpoint.realmysqlpoint.enumerated.ProviderType> provider = createEnum("provider", mysqlpoint.realmysqlpoint.enumerated.ProviderType.class);
-
-    public final EnumPath<mysqlpoint.realmysqlpoint.enumerated.MemberRole> role = createEnum("role", mysqlpoint.realmysqlpoint.enumerated.MemberRole.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

@@ -22,7 +22,7 @@ public class QRestaurant extends EntityPathBase<Restaurant> {
 
     public static final QRestaurant restaurant = new QRestaurant("restaurant");
 
-    public final QBaseEntity _super = new QBaseEntity(this);
+    public final mysqlpoint.realmysqlpoint.util.QBaseEntity _super = new mysqlpoint.realmysqlpoint.util.QBaseEntity(this);
 
     public final StringPath address = createString("address");
 

@@ -1,4 +1,4 @@
-package mysqlpoint.realmysqlpoint.entity;
+package mysqlpoint.realmysqlpoint.util;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +31,4 @@ public class BaseEntity {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
-
-    public void deleteEntity() {
-        this.deletedAt = LocalDateTime.now();
-    }
 }

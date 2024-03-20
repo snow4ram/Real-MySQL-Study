@@ -1,4 +1,4 @@
-package mysqlpoint.realmysqlpoint.entity;
+package mysqlpoint.realmysqlpoint.util;
 
 
 import lombok.Getter;

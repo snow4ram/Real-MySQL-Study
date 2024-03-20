@@ -7,20 +7,21 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
-import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QItem is a Querydsl query type for Item
+ * QProduct is a Querydsl query type for Product
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QItem extends EntityPathBase<Item> {
+public class QProduct extends EntityPathBase<Product> {
 
-    private static final long serialVersionUID = 805724540L;
+    private static final long serialVersionUID = 636936678L;
 
-    public static final QItem item = new QItem("item");
+    public static final QProduct product = new QProduct("product");
 
-    public final QBaseEntity _super = new QBaseEntity(this);
+    public final mysqlpoint.realmysqlpoint.util.QBaseEntity _super = new mysqlpoint.realmysqlpoint.util.QBaseEntity(this);
+
+    public final NumberPath<Double> alcohol = createNumber("alcohol", Double.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -31,29 +32,25 @@ public class QItem extends EntityPathBase<Item> {
     //inherited
     public final NumberPath<Long> id = _super.id;
 
-    public final StringPath info = createString("info");
-
     public final StringPath name = createString("name");
 
     public final NumberPath<java.math.BigDecimal> price = createNumber("price", java.math.BigDecimal.class);
 
-    public final ListPath<RestaurantStock, QRestaurantStock> restaurantStocks = this.<RestaurantStock, QRestaurantStock>createList("restaurantStocks", RestaurantStock.class, QRestaurantStock.class, PathInits.DIRECT2);
-
-    public final EnumPath<mysqlpoint.realmysqlpoint.util.ItemType> type = createEnum("type", mysqlpoint.realmysqlpoint.util.ItemType.class);
+    public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public QItem(String variable) {
-        super(Item.class, forVariable(variable));
+    public QProduct(String variable) {
+        super(Product.class, forVariable(variable));
     }
 
-    public QItem(Path<? extends Item> path) {
+    public QProduct(Path<? extends Product> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QItem(PathMetadata metadata) {
-        super(Item.class, metadata);
+    public QProduct(PathMetadata metadata) {
+        super(Product.class, metadata);
     }
 
 }

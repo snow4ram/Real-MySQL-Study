@@ -5,6 +5,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import mysqlpoint.realmysqlpoint.util.BaseEntity;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Coordinate;
@@ -21,7 +22,7 @@ import java.util.Map;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class Restaurant extends BaseEntity{
+public class Restaurant extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
